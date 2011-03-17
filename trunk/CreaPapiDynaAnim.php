@@ -6,15 +6,39 @@ define("SVG_CLASS_BASE",
         $_SERVER["DOCUMENT_ROOT"]."/param/ClassPHP/SVG/");
 */
 define("SVG_CLASS_BASE", 
-        $_SERVER["DOCUMENT_ROOT"]."/library/svg/");
+        "../evalactisem/library/svg/");
+
+// récupération des variables
+if(isset($_GET['larg'])){
+	$larg = $_GET['larg'];
+}else{
+	$larg = "100%";
+}
+if(isset($_GET['haut'])){
+	$haut = $_GET['haut'];
+}else{
+	$haut = "100%";
+}
+if(isset($_GET['id'])){
+	$id = $_GET['id'];
+}else{
+	$id = "id0";
+}
+
+// Stoppe 1 seconde pour changer l'aléa
+//lors de HTTPREQUEST multiples
+//sleep(1);
+
+//initialise le random
+mt_srand(make_seed());
 
 // Include the class files.
 require_once(SVG_CLASS_BASE."Svg.php");
 
 // Create an instance of SvgDocument. All other objects will be added to this
 // instance for printing.
-// Set the height and width of the viewport.
-$svg =& new SvgDocument("100%", "100%");
+// Set the height and width of the viewport. xMidYMid meet
+$svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 
 // Création du groupe des dégradés
 	$gDegrad =& new SvgGroup("", "");
@@ -23,12 +47,11 @@ $svg =& new SvgDocument("100%", "100%");
 	$gTet =& new SvgGroup("", "");
 	//tête
 	//tirage du point le plus haut
-	srand(time());
-	$x2 = rand(242, 252);
+	$x2 = mt_rand(242, 252);
 	//tirage de la largeur
-	$x3 = rand(8,25);
+	$x3 = mt_rand(8,25);
 	//tirage de la hauteur
-	$x4 = rand(8,25);
+	$x4 = mt_rand(8,25);
 	//centrage de l'objet
 	$x1 = 298.5 - ($x3 / 2);
 
@@ -46,12 +69,12 @@ $svg =& new SvgDocument("100%", "100%");
 	//traçage des antennes
 	$y = $x2 + 6;
 	$x = 302;
-	$a  = rand(500,301);
-	$b = rand(400 - 30 + 1,30);
-	$c = rand(500 - 301 + 1,301);
-	$d = rand(400 - 30 + 1,30);
-	$e = rand(500 - 301 + 1,301);
-	$f = rand(400 - 30 + 1,30);
+	$a  = mt_rand(500,301);
+	$b = mt_rand(400 - 30 + 1,30);
+	$c = mt_rand(500 - 301 + 1,301);
+	$d = mt_rand(400 - 30 + 1,30);
+	$e = mt_rand(500 - 301 + 1,301);
+	$f = mt_rand(400 - 30 + 1,30);
 	
 	// Creation de la couleur
 	$colo = GetRndRGBColor(1);
@@ -74,9 +97,9 @@ $svg =& new SvgDocument("100%", "100%");
 // Creation du corps
 	$gCor =& new SvgGroup("", "");
 	//tirage de la largeur
-	$x3 = rand(64, 24);
+	$x3 = mt_rand(64, 24);
 	//tirage de la hauteur
-	$hautCor = rand(96, 32);
+	$hautCor = mt_rand(96, 32);
 	//tirage du point le plus haut
 	$xhautCor = $x2 + $hautCor + 3;
 
@@ -93,9 +116,9 @@ $svg =& new SvgDocument("100%", "100%");
 //traçage de la queue
 	$gQue =& new SvgGroup("", "");
 	//tirage de la largeur
-	$x3 = rand(32, 16);
+	$x3 = mt_rand(32, 16);
 	//tirage de la hauteur
-	$x4 = rand(96, 32);
+	$x4 = mt_rand(96, 32);
 	//tirage du point le plus haut
 	$x2 = $xhautCor + $x4 + 6;
 	// Creation du dégradé
@@ -120,10 +143,10 @@ $svg =& new SvgDocument("100%", "100%");
 	C359.983 106.967 360.702 156.278 361.062 205.229";
 /*
 	$path=ModifAleaPath("M408.929 201.27 C470.112 182.913 531.295 164.557 528.055 147.279 C524.457 130.002 415.767 87.53 388.055 97.249 C359.983 106.967 360.702 156.278 361.062 205.229",10);
-	$path="M".rand(400, 500)." ".rand(200, 300)." 
-		C".rand(400, 500)." ".rand(200, 300)." ".rand(500, 600)." ".rand(100, 200)." ".rand(500, 600)." ".rand(100, 200)." 
-		C".rand(500, 600)." ".rand(100, 200)." ".rand(400, 500)." ".rand(100, 200)." ".rand(300, 400)." ".rand(100, 200)." 
-		C".rand(300, 400)." ".rand(100, 200)." ".rand(300, 400)." ".rand(100, 200)." ".rand(300, 400)." ".rand(200, 300)." ";
+	$path="M".mt_rand(400, 500)." ".mt_rand(200, 300)." 
+		C".mt_rand(400, 500)." ".mt_rand(200, 300)." ".mt_rand(500, 600)." ".mt_rand(100, 200)." ".mt_rand(500, 600)." ".mt_rand(100, 200)." 
+		C".mt_rand(500, 600)." ".mt_rand(100, 200)." ".mt_rand(400, 500)." ".mt_rand(100, 200)." ".mt_rand(300, 400)." ".mt_rand(100, 200)." 
+		C".mt_rand(300, 400)." ".mt_rand(100, 200)." ".mt_rand(300, 400)." ".mt_rand(100, 200)." ".mt_rand(300, 400)." ".mt_rand(200, 300)." ";
 */	
 	$aile1 = new SvgPath($path, "stroke-width:3","", "fill=\"url(#".$nomDeg.")\" ");
 	// Make the circle a child of g.
@@ -131,10 +154,10 @@ $svg =& new SvgDocument("100%", "100%");
 	$gAileG->addChild($aile1);
 
 	/*
-	$path="M".rand(400, 500)." ".rand(200, 300)." 
-		C".rand(400, 500)." ".rand(200, 300)." ".rand(400, 500)." ".rand(200, 300)." ".rand(500, 600)." ".rand(200, 300)." 
-		C".rand(500, 600)." ".rand(100, 200)." ".rand(500, 600)." ".rand(100, 200)." ".rand(500, 600)." ".rand(100, 200)." 
-		C".rand(500, 600)." ".rand(100, 200)." ".rand(400, 500)." ".rand(100, 200)." ".rand(400, 500)." ".rand(200, 300)." ";
+	$path="M".mt_rand(400, 500)." ".mt_rand(200, 300)." 
+		C".mt_rand(400, 500)." ".mt_rand(200, 300)." ".mt_rand(400, 500)." ".mt_rand(200, 300)." ".mt_rand(500, 600)." ".mt_rand(200, 300)." 
+		C".mt_rand(500, 600)." ".mt_rand(100, 200)." ".mt_rand(500, 600)." ".mt_rand(100, 200)." ".mt_rand(500, 600)." ".mt_rand(100, 200)." 
+		C".mt_rand(500, 600)." ".mt_rand(100, 200)." ".mt_rand(400, 500)." ".mt_rand(100, 200)." ".mt_rand(400, 500)." ".mt_rand(200, 300)." ";
 	*/
 	$path="M437.001 218.187 
 		C465.073 231.864 492.786 245.182 507.901 233.304 
@@ -249,8 +272,8 @@ function ModifAleaPath($Path,$nbAlea)
 	$partPath = substr($Path, 1,$posi); 
 	$arrCoorM = split( " ", $partPath);
 	// recalcul des coordonnées M
-	$newPath= "M".($arrCoorM[0]+rand(0, $nbAlea));
-	$newPath= $newPath." ".($arrCoorM[1]+rand(0, $nbAlea));
+	$newPath= "M".($arrCoorM[0]+mt_rand(0, $nbAlea));
+	$newPath= $newPath." ".($arrCoorM[1]+mt_rand(0, $nbAlea));
 	//récupération des coordonnées C
 	$partPath = substr($Path, $posi+2);
 	$arrCoorC = split( " C", $partPath);
@@ -261,7 +284,7 @@ function ModifAleaPath($Path,$nbAlea)
 		$strCoor = substr($strCoor, 1); 
 		$arrCoor = split( " ", $strCoor);
 		foreach ( $arrCoor as $Coor ){
-			$newPath= $newPath." ".($Coor+rand(0, $nbAlea));
+			$newPath= $newPath." ".($Coor+mt_rand(0, $nbAlea));
 		}
 	}
 	//retourne le nouveau Path
@@ -270,39 +293,41 @@ function ModifAleaPath($Path,$nbAlea)
 
 function GetRndAnimate($nomAni,$type)
 {
+	//initialise le random
+	//mt_srand(make_seed());
 	switch ($nomAni) {
 		case "fx":
 			// animation fx
 			//<animate attributeName="fx" attributeType="XML" begin="0s" dur="10s" fill="freeze" from="0" to="100"/>
-			$from = rand(0,255);
-			$to = rand(0,255);
-			$begin = rand(0,10)."s";
-			$dur = rand(0,255)."s";
+			$from = mt_rand(0,255);
+			$to = mt_rand(0,255);
+			$begin = mt_rand(0,10)."s";
+			$dur = mt_rand(0,255)."s";
 			$ani =& new SvgAnimate($nomAni,"indefinite", "XML", $from, $to, $begin, $dur,"freeze");
 			break;
 		case "fy":
 			// animation fy
 			//<animate attributeName="fx" attributeType="XML" begin="0s" dur="10s" fill="freeze" from="0" to="100"/>
-			$from = rand(0,255);
-			$to = rand(0,255);
-			$begin = rand(0,10)."s";
-			$dur = rand(0,255)."s";
+			$from = mt_rand(0,255);
+			$to = mt_rand(0,255);
+			$begin = mt_rand(0,10)."s";
+			$dur = mt_rand(0,255)."s";
 			$ani =& new SvgAnimate($nomAni,"indefinite", "XML", $from, $to, $begin, $dur,"freeze");
 			break;
 		case "stop-color":
 			//<animateColor attributeName="stop-color" attributeType="XML" from="rgb(254,167,29)" to="rgb(105,84,91)" begin="0s" dur="10s" fill="freeze"/>
 			$from = GetRndRGBColor(1);
 			$to = GetRndRGBColor(1);
-			$begin = rand(0,10)."s";
-			$dur = rand(0,255)."s";
+			$begin = mt_rand(0,10)."s";
+			$dur = mt_rand(0,255)."s";
 			$ani =& new SvgAnimateColor($nomAni,"indefinite", "XML", $from, $to, $begin, $dur,"freeze");
 			break;
 		case "gradientTransform":
 			//<animateTransform repeatCount="indefinite" attributeName="gradientTransform" attributeType="XML" type="translate" from="-10,-10" to="30,30" dur="10s" additive="replace" fill="freeze"/>
 			$from = -100;
 			$to = 100;
-			$begin = rand(0,10)."s";
-			$dur = rand(0,255)."s";
+			$begin = mt_rand(0,10)."s";
+			$dur = mt_rand(0,255)."s";
 			$ani =& new SvgAnimateTransform($nomAni,"indefinite", "XML", $from, $to, $begin, $dur,"freeze",$type,"replace");
 			break;
 	}
@@ -356,18 +381,20 @@ function GetDegrad($nomDeg,$nbColor,$nbDim,$TypeDegrad)
 }
 function GetRndRGBColor($nbColor)
 {
+	//initialise le random
+	//mt_srand(make_seed());
 	$Colors = "";
 	if ($nbColor==1){
-		$c1 = rand(0,255);
-		$c2 = rand(0,255);
-		$c3 = rand(0,255);
+		$c1 = mt_rand(0,255);
+		$c2 = mt_rand(0,255);
+		$c3 = mt_rand(0,255);
 		$Colors = "rgb(" .$c1 ."," .$c2 ."," .$c3 .")";
 		return $Colors;
 	} else {
 		for ($i = 1; $i <= $nbColor; $i++) {
-			$c1 = rand(0,255);
-			$c2 = rand(0,255);
-			$c3 = rand(0,255);
+			$c1 = mt_rand(0,255);
+			$c2 = mt_rand(0,255);
+			$c3 = mt_rand(0,255);
 			$Colors = $Colors ."rgb(" .$c1 ."," .$c2 ."," .$c3 .")/";
 		}
 		$arrColors = split( "/", $Colors);
@@ -377,9 +404,11 @@ function GetRndRGBColor($nbColor)
 }
 function GetRndOffset($nbOffset=1,$maxOffset=100)
 {
+	//initialise le random
+	//mt_srand(make_seed());
 	$Offset="";
 	for ($i = 1; $i <= $nbOffset-1; $i++) {
-		$n1 = rand(1, $maxOffset);
+		$n1 = mt_rand(1, $maxOffset);
 		$Offset= $Offset."0.".$n1 ."/";
 		$maxOffset = $maxOffset - $n1;
 	}
@@ -388,5 +417,11 @@ function GetRndOffset($nbOffset=1,$maxOffset=100)
 	$lastSep = array_pop($arrOffset);
 	sort($arrOffset);
 	return $arrOffset;
+}
+
+function make_seed()
+{
+  list($usec, $sec) = explode(' ', microtime());
+  return (float) $sec + ((float) $usec * 100000);
 }
 ?>
