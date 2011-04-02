@@ -1,16 +1,35 @@
 <?php
 
 // *** Define the path to the SVG class dir. ***
+//define("SVG_CLASS_BASE", 
+//        $_SERVER["DOCUMENT_ROOT"]."/library/svg/");
 define("SVG_CLASS_BASE", 
-        $_SERVER["DOCUMENT_ROOT"]."/library/svg/");
+        "../evalactisem/library/svg/");
+
+// récupération des variables
+if(isset($_GET['larg'])){
+	$larg = $_GET['larg'];
+}else{
+	$larg = "100%";
+}
+if(isset($_GET['haut'])){
+	$haut = $_GET['haut'];
+}else{
+	$haut = "100%";
+}
+if(isset($_GET['id'])){
+	$id = $_GET['id'];
+}else{
+	$id = "id0";
+}
 
 // Include the class files.
 require_once(SVG_CLASS_BASE."Svg.php");
 
 // Create an instance of SvgDocument. All other objects will be added to this
 // instance for printing.
-// Set the height and width of the viewport.
-$svg =& new SvgDocument("100%", "100%");
+// Set the height and width of the viewport. xMidYMid meet
+$svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 
 // Création du groupe des dégradés
 	$gDegrad =& new SvgGroup("", "");

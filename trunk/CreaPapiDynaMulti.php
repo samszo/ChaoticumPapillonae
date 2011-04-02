@@ -6,18 +6,24 @@
 <title>Foule de papillon dynamique</title>
 <script type="text/javascript">
 
+var taille = 100;
+var screenH = window.innerHeight-taille;
+var screenL = window.innerWidth-taille;
+
 function init(){
-	var taille = 100;
+
 	var doc = document.getElementById("svg_papi");
 	for (var iter = 0; iter < 100; iter++) {
 		var div = document.createElement('div');
 		div.setAttribute("id", "id"+iter);
-		var rTop=Math.floor(Math.random()*600);
-		var rLeft=Math.floor(Math.random()*600);
+		var rTop=Math.floor(Math.random()*screenH);
+		var rLeft=Math.floor(Math.random()*screenL);
 		div.setAttribute("style", 'position:absolute;visibility:visible;top:'+rTop+'px; left:'+rLeft+'px');
 		doc.appendChild(div);	
 		AppendSVG("CreaPapiDynaAnim.php?larg="+taille+"&haut="+taille+"&id=id"+iter,document.getElementById("id"+iter),true);
-		//setInterval('moveAlea(\"id'+iter+'\");',100);
+		//AppendSVG("PapiDynaVole.php?larg="+taille+"&haut="+taille+"&id=id"+iter,document.getElementById("id"+iter),true);
+
+		setInterval('moveAlea(\"id'+iter+'\");',100);
 	}	
 }
 
@@ -38,10 +44,10 @@ function moveAlea (id) {
 	else
 		rLeft=left-opLeft;
 
-	if(rTop>520)rTop=0;
-	if(rLeft>1000)rLeft=0;
-	if(rTop<-80)rTop=520;
-	if(rLeft<-80)rLeft=1000;
+	if(rTop>screenH)rTop=0;
+	if(rLeft>screenL)rLeft=0;
+	if(rTop<-80)rTop=screenH;
+	if(rLeft<-80)rLeft=screenL;
 
 	obj.setAttribute("style", 'position: absolute;visibility:visible; top:'+rTop+'px; left:'+rLeft+'px');
 }
