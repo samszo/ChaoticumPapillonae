@@ -1,8 +1,7 @@
 <?php
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');  
-define('__ROOT__', dirname(dirname(__FILE__)));
-define("SVG_CLASS_BASE",__ROOT__."/ChaoticumPapillonae/library/svg/");
+define("SVG_CLASS_BASE","library/svg/");
 
 // récupération des variables
 if(isset($_GET['larg'])){

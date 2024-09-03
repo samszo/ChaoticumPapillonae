@@ -4,9 +4,9 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 <title>Papillon Chaotique</title>
-    <script src="../public/js/rgbcolor.js"></script>
-    <script src="../public/js/canvg.js"></script>
-    <script src="../public/js/svgenie.js"></script>
+    <script src="asset/js/rgbcolor.js"></script>
+    <script src="asset/js/canvg.js"></script>
+    <script src="asset/js/svgenie.js"></script>
 
 <script type="text/javascript">
 
