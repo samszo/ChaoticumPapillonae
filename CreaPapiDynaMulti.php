@@ -6,48 +6,48 @@
 <title>Foule de papillon dynamique</title>
 <script type="text/javascript">
 
-var taille = 100;
-var screenH = window.innerHeight-taille;
-var screenL = window.innerWidth-taille;
-
 function init(){
-
+	var taille = 100;
 	var doc = document.getElementById("svg_papi");
 	for (var iter = 0; iter < 100; iter++) {
 		var div = document.createElement('div');
 		div.setAttribute("id", "id"+iter);
-		var rTop=Math.floor(Math.random()*screenH);
-		var rLeft=Math.floor(Math.random()*screenL);
+		var rTop=Math.floor(Math.random()*window.innerHeight);
+		var rLeft=Math.floor(Math.random()*window.innerWidth);
 		div.setAttribute("style", 'position:absolute;visibility:visible;top:'+rTop+'px; left:'+rLeft+'px');
 		doc.appendChild(div);	
-		AppendSVG("CreaPapiDynaAnim.php?larg="+taille+"&haut="+taille+"&id=id"+iter,document.getElementById("id"+iter),true);
-		//AppendSVG("PapiDynaVole.php?larg="+taille+"&haut="+taille+"&id=id"+iter,document.getElementById("id"+iter),true);
-
+		AppendSVG("CreaPapiDynaAnim.php?anim=0&larg="+taille+"&haut="+taille+"&id=id"+iter,document.getElementById("id"+iter),true);
 		setInterval('moveAlea(\"id'+iter+'\");',100);
 	}	
 }
 
 function moveAlea (id) {
+	var vitesse = 40;
 	var obj = document.getElementById(id);
 	var top = parseInt(obj.style.top);
 	var left = parseInt(obj.style.left); 		
-	var opTop = Math.floor(Math.random()*30);
-	var opLeft = Math.floor(Math.random()*30);
-
-	if(opTop>15)
+	var opTop = Math.floor(Math.random()*vitesse);
+	var opLeft = Math.floor(Math.random()*vitesse);
+	var larg = window.innerWidth;
+	var haut = window.innerHeight;
+	
+	if(opTop >= vitesse/2){
 		rTop=top+opTop;
-	else
+		//console.log(rTop+"="+top+"+"+opTop);		
+	}else{
 		rTop=top-opTop;
-
-	if(opLeft>15)
+		//console.log(rTop+"="+top+"-"+opTop);		
+	}
+		
+	if(opLeft >= vitesse/2)
 		rLeft=left+opLeft;
 	else
 		rLeft=left-opLeft;
 
-	if(rTop>screenH)rTop=0;
-	if(rLeft>screenL)rLeft=0;
-	if(rTop<-80)rTop=screenH;
-	if(rLeft<-80)rLeft=screenL;
+	if(rTop>haut)rTop=0;
+	if(rLeft>larg)rLeft=0;
+	if(rTop<-80)rTop=haut;
+	if(rLeft<-80)rLeft=larg;
 
 	obj.setAttribute("style", 'position: absolute;visibility:visible; top:'+rTop+'px; left:'+rLeft+'px');
 }
@@ -67,7 +67,7 @@ function AppendSVG(url,doc, InSvg) {
 	p.send(null);
 
 	if (p.status != "200" ){
-	      alert("Réception erreur " + p.status);
+	      alert("Rï¿½ception erreur " + p.status);
 	}else{
 
 	    var response = p.responseText;

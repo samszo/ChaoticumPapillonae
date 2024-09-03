@@ -1,12 +1,10 @@
 <?php
 
 // *** Define the path to the SVG class dir. ***
-//define("SVG_CLASS_BASE", 
-//        $_SERVER["DOCUMENT_ROOT"]."/library/svg/");
 define("SVG_CLASS_BASE", 
-        "../evalactisem/library/svg/");
+        $_SERVER["DOCUMENT_ROOT"]."/library/svg/");
 
-// récupération des variables
+// rï¿½cupï¿½ration des variables
 if(isset($_GET['larg'])){
 	$larg = $_GET['larg'];
 }else{
@@ -31,12 +29,12 @@ require_once(SVG_CLASS_BASE."Svg.php");
 // Set the height and width of the viewport. xMidYMid meet
 $svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 
-// Création du groupe des dégradés
+// Crï¿½ation du groupe des dï¿½gradï¿½s
 	$gDegrad =& new SvgGroup("", "");
 
-// Creation de la tête
+// Creation de la tï¿½te
 	$gTet =& new SvgGroup("", "");
-	//tête
+	//tï¿½te
 	//tirage du point le plus haut
 	srand(time());
 	$x2 = rand(242, 252);
@@ -47,18 +45,18 @@ $svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 	//centrage de l'objet
 	$x1 = 298.5 - ($x3 / 2);
 
-	// Creation du dégradé
+	// Creation du dï¿½gradï¿½
 	$nomDeg = "DegTete";
 	$gDegrad->addChild(GetDegrad($nomDeg,10,1000,"radial"));
 	$gTet =& new SvgGroup("", "");
 
-	//traçage de l'objet
+	//traï¿½age de l'objet
 	$tete = new SvgEllipse($x1, $x2, $x3, $x4, "stroke-width:3","", "fill=\"url(#".$nomDeg.")\"");
 
 	// Make the circle a child of g.
 	$gTet->addChild($tete);
 
-	//traçage des antennes
+	//traï¿½age des antennes
 	$y = $x2 + 6;
 	$x = 302;
 	$a  = rand(500,301);
@@ -72,7 +70,7 @@ $svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 	$colo = GetRndRGBColor(1);
 	//$g->addChild(GetDegrad($nomDeg,60,1000));
 
-	//traçage de l'objet
+	//traï¿½age de l'objet
 	$path ="M ".$x." ".$y 
 			." Q".$a." ".$b 
 			." ".$c." ".$d 
@@ -95,17 +93,17 @@ $svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 	//tirage du point le plus haut
 	$xhautCor = $x2 + $hautCor + 3;
 
-	// Creation du dégradé animé
+	// Creation du dï¿½gradï¿½ animï¿½
 	$nomDeg = "DegCorps";
 	$gDegrad->addChild(GetRndAniDegrad("all",$nomDeg,10,1000,"radial"));
 	
-	//traçage de l'objet
+	//traï¿½age de l'objet
 	$corps = new SvgEllipse($x1, $xhautCor, $x3, $hautCor, "stroke-width:3","", "fill=\"url(#".$nomDeg.")\"");
 
 	// Make the circle a child of g.
 	$gCor->addChild($corps);
 
-//traçage de la queue
+//traï¿½age de la queue
 	$gQue =& new SvgGroup("", "");
 	//tirage de la largeur
 	$x3 = rand(32, 16);
@@ -113,19 +111,19 @@ $svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 	$x4 = rand(96, 32);
 	//tirage du point le plus haut
 	$x2 = $xhautCor + $x4 + 6;
-	// Creation du dégradé
+	// Creation du dï¿½gradï¿½
 	$nomDeg = "DegQueue";
 	$gDegrad->addChild(GetRndAniDegrad("all",$nomDeg,10,1000,"radial"));
-	//traçage de l'objet
+	//traï¿½age de l'objet
 	$queue = new SvgEllipse($x1, $x2, $x3, $x4, "stroke-width:3","", "fill=\"url(#".$nomDeg.")\"");
 	// Make the circle a child of g.
 	$gQue->addChild($queue);
 
-//traçage des ailes
+//traï¿½age des ailes
 	$gAileD =& new SvgGroup("", "");
 	$gAileG =& new SvgGroup("", "matrix(-1 0 0 1 ".(2*$x1)." 0)");
 
-	// Creation du dégradé
+	// Creation du dï¿½gradï¿½
 	$nomDeg = "DegAile";
 	$gDegrad->addChild(GetRndAniDegrad("all",$nomDeg,10,1000,"radial"));
 
@@ -251,7 +249,7 @@ $svg =& new SvgDocument($larg, $haut,"","34 -80 504 600","none",$id);
 	$gAileD->addChild($aile6);
 	$gAileG->addChild($aile6);
 
-	//courbe intérieure basse
+	//courbe intï¿½rieure basse
 	$path="M339.108 302.412 C407.849 331.207 476.95 360.002 492.066 360.361 C506.822 360.361
 			456.795 315.009 429.083 303.132 C401.371 291.614 363.582 290.894 326.152 290.174";
 	$aile7 = new SvgPath("", "stroke-width:3","", "fill=\"url(#".$nomDeg.")\" ");
@@ -374,24 +372,24 @@ $svg->printElement();
 
 function ModifAleaPath($Path,$nbAlea)
 {
-	//modification aléatoire d'un path
+	//modification alï¿½atoire d'un path
 	$newPath= "";
 	/*$path="M408.929 201.27 
 		C470.112 182.913 531.295 164.557 528.055 147.279 
 		C524.457 130.002 415.767 87.53 388.055 97.249 
 		C359.983 106.967 360.702 156.278 361.062 205.229";
 	*/
-	//récupération des coordonnées M
+	//rï¿½cupï¿½ration des coordonnï¿½es M
 	$posi = strpos($Path, " C");
 	$partPath = substr($Path, 1,$posi); 
 	$arrCoorM = split( " ", $partPath);
-	// recalcul des coordonnées M
+	// recalcul des coordonnï¿½es M
 	$newPath= "M".($arrCoorM[0]+rand(0, $nbAlea));
 	$newPath= $newPath." ".($arrCoorM[1]+rand(0, $nbAlea));
-	//récupération des coordonnées C
+	//rï¿½cupï¿½ration des coordonnï¿½es C
 	$partPath = substr($Path, $posi+2);
 	$arrCoorC = split( " C", $partPath);
-	// recalcul des coordonnées M
+	// recalcul des coordonnï¿½es M
 	for ($i = 0; $i <= count($arrCoorC)-1; $i++) {
 		$newPath= $newPath." C";
 		$strCoor = $arrCoorC[$i];
@@ -420,7 +418,7 @@ function GetRndAnimate($nomAni,$type)
 			$begin = "0s";
 			$dur = "3s";
 			$values =" values=\"".$type;
-			//création des valeurs de vole		
+			//crï¿½ation des valeurs de vole		
 			$ani =& new SvgAnimate("d","indefinite", "XML", $from, $to, $begin, $dur,"freeze\" additive=\"replace\" ".$values);
 			break;
 		case "fx":
@@ -458,18 +456,18 @@ function GetRndAnimate($nomAni,$type)
 			$ani =& new SvgAnimateTransform($nomAni,"indefinite", "XML", $from, $to, $begin, $dur,"freeze",$type,"replace");
 			break;
 	}
-	//renvoie l'animation créé
+	//renvoie l'animation crï¿½ï¿½
 	return $ani;
 }
 function GetRndAniDegrad($nomAni,$nomDeg,$nbColor,$nbDim,$TypeDegrad)
 {
-	// Creation du dégradé
+	// Creation du dï¿½gradï¿½
 	$def =& new SvgDefs("", "");
-	//tirage des couleurs du dégradé
+	//tirage des couleurs du dï¿½gradï¿½
 	$couleurs = GetRndRGBColor($nbColor);
-	//tirage des offset du dégradé
+	//tirage des offset du dï¿½gradï¿½
 	$offset = GetRndOffset($nbColor,$nbDim);
-	//construction du dégradé
+	//construction du dï¿½gradï¿½
 	if ($TypeDegrad=="radial"){
 		$degrad =& new SvgRadialGradient($nomDeg, $offset, $couleurs);
 	} else {
@@ -491,13 +489,13 @@ function GetRndAniDegrad($nomAni,$nomDeg,$nbColor,$nbDim,$TypeDegrad)
 }
 function GetDegrad($nomDeg,$nbColor,$nbDim,$TypeDegrad)
 {
-	// Creation du dégradé
+	// Creation du dï¿½gradï¿½
 	$def =& new SvgDefs("", "");
-	//tirage des couleurs du dégradé
+	//tirage des couleurs du dï¿½gradï¿½
 	$couleurs = GetRndRGBColor($nbColor);
-	//tirage des offset du dégradé
+	//tirage des offset du dï¿½gradï¿½
 	$offset = GetRndOffset($nbColor,$nbDim);
-	//construction du dégradé
+	//construction du dï¿½gradï¿½
 	if ($TypeDegrad=="radial"){
 		$degrad =& new SvgRadialGradient($nomDeg, $offset, $couleurs);
 	} else {

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaoticum Papillonae</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="asset/js/rgbcolor.js"></script>
+    <script src="asset/js/canvg.js"></script>
+    <script src="asset/js/svgenie.js"></script>
+    <script src="asset/js/chaoticumPapillonae.js"></script>
+    <style>
+        .divPapi {
+            position: absolute;
+            visibility: visible;
+            top: 0px;
+            left: 0px;
+        }
+
+        .svg_papi {
+            background-color: #000000;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="mainPapi"></div>
+    <script>
+        let params = extractUrlParams();
+        //gestion des icones pour pwa
+        if (params.pwa) params.taille = 512;
+        if (!params.idSvg) params.idSvg = 'cp' + Date.now();
+        let taille = params.taille ? params.taille : "100%",
+            cont = d3.select("#mainPapi")
+            .style('height', taille + 'px')
+            .style('width', taille + 'px'),
+            contSvg = cont.append('div').attr("id", "div" + params.idSvg)
+            .attr('class', 'divPapi');
+        let papi = new chaoticumPapillonae({
+            'cont': contSvg,
+            'params': extractUrlParams()
+        });
+
+        function extractUrlParams() {
+            var t = location.search.substring(1).split('&');
+            var f = [];
+            for (var i = 0; i < t.length; i++) {
+                var x = t[i].split('=');
+                f[x[0]] = x[1];
+            }
+            return f;
+        }
+    </script>
+
+</body>
+
+</html>
