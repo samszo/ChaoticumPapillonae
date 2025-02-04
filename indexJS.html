@@ -44,7 +44,16 @@
             'cont': contSvg,
             'params': params,
             'height':1000,
-            'width':1000
+            'width':1000,
+            'scaleColors':d3.scaleSequential(d3.interpolateYlOrRd)
+            /* cf. https://d3js.org/d3-scale-chromatic
+            d3.scaleSequential(d3.interpolateYlOrRd)
+            d3.scaleSequential(d3.interpolateMagma)
+            d3.scaleSequential(d3.interpolateBlues)
+            d3.scaleOrdinal(d3.schemeAccent)
+            d3.scaleSequential(d3.interpolateRainbow)
+            d3.scaleSequential(d3.interpolatePiYG)
+            */
         });
 
         function extractUrlParams() {

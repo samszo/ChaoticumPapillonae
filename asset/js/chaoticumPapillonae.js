@@ -4,7 +4,12 @@ class chaoticumPapillonae {
         this.cont = params.cont ? params.cont : d3.select("#"+params.idCont);
         this.width = params.width ? params.width : 400;
         this.height = params.height ? params.height : 400;
-        let svg, container, defs, randoms, scales, 
+        this.scaleColors = params.scaleColors ? params.scaleColors : false;
+        this.modelesWing = params.modelesWing ? params.modelesWing : [
+            "asset/svg/papiAile.svg",
+            "asset/svg/papiAile1.svg"
+        ];
+        let svg, defs, randoms, scales, 
             posis={
                 'head':{'cx':0,'cy':0,'rx':0,'ry':0},
                 'body':{'cx':0,'cy':0,'rx':0,'ry':0},
@@ -58,17 +63,26 @@ class chaoticumPapillonae {
                 .attr("width", me.width)
                 .attr("height", me.height)
                 .attr("preserveAspectRatio","xMidYMid meet");
-            container = svg.append("g");
             defs = svg.append('defs');
+            /*pour les tests de dégradé
+            svg.append('rect')
+                .attr('x',0).attr('y',0)
+                .attr("width", me.width)
+                .attr("height", me.height)
+                .attr("stroke",4)                
+                .attr("fill","white");
+            */
 
+            /*pour tester les positions
             setGrille();
+            */
 
             setHead();
+            setWings();
             setBody();
             setTail();
             setAntennae();
 
-            setWings();
 
             body.raise();
 
@@ -133,16 +147,46 @@ class chaoticumPapillonae {
         }
 
         function setWings(){
+            let wingL = svg.append("g").attr('id','wingL'),
+            wingR = svg.append("g").attr('id','wingR')
+                .attr("transform","matrix(-1 0 0 1 "+(2*(posis.head.cx))+" 0)");
 
-            let wing = svg.append("g").attr('id','wingL'),
-                d = polygon()
-                .curve(d3.curveCardinalClosed)
-                .scale(100)
-                .n(3)();
-            wing.append('path').attr('d',d)
-                .attr("stroke","black").attr("fill","orange")
-                .attr("stroke-width","2")
-                .attr("transform","translate("+(posis.body.cx-100)+" "+posis.body.cy+") rotate(70)");
+            //charger le modèle d'aile
+            d3.xml(me.modelesWing[1]).then(data => {
+                let modeleWingL = document.importNode(data.documentElement, true),
+                modeleWingR = document.importNode(data.documentElement, true);
+                wingL.node().appendChild(modeleWingL);
+                wingL.select('svg').attr('width',size/2).attr('height',size);
+                wingR.node().appendChild(modeleWingR);
+                wingR.select('svg').attr('width',size/2).attr('height',size);
+                //calcule les dégradés pour chaque élément
+                wingL.select('svg').selectAll('path').each(setPathDegrad);
+                wingL.select('svg').selectAll('ellipse').each(setPathDegrad);
+                wingL.select('svg').selectAll('circle').each(setPathDegrad);
+                wingR.select('svg').selectAll('path').each(setPathDegrad);
+                wingR.select('svg').selectAll('ellipse').each(setPathDegrad);
+                wingR.select('svg').selectAll('circle').each(setPathDegrad);
+            });
+        }
+        function setPathDegrad(e,d){
+            let bb = this.getBBox(),
+                s = d3.select(this),
+                degradId = 'WingGrad'+s.attr('id');
+            if(defs.select("#"+degradId).size()==0){
+                switch (this.nodeName) {
+                    case "ellipse":
+                    case "circle":
+                        setDegrad({'id':degradId,'type':'radialGradient',
+                            'cx':bb.x+bb.width/2,'cy':bb.y+bb.height/2,
+                            'r':bb.width>bb.height?bb.width/2:bb.height/2})                            
+                        break;
+                    default:
+                        setDegrad({'id':degradId,'type':'radialGradient','cx':bb.x,'cy':bb.y,
+                            'r':bb.width>bb.height?bb.width:bb.height})
+                        break;
+                }
+            }
+            s.attr('style',"").attr('fill','url(#'+degradId+')');
         }
 
         function setGrille(){
@@ -187,7 +231,7 @@ class chaoticumPapillonae {
             posis.head.ry = randoms.headHeight(); 
             posis.head.cx = scales.hBand("head-tail")+scales.hBand.bandwidth()/2; 
             posis.head.cy = randoms.headCenter();
-            head = container.append('g').attr('class',id);
+            head = svg.append('g').attr('class',id);
             //création des yeux
             head.append('circle')
                 .attr('cx',posis.head.cx-posis.head.rx)
@@ -206,8 +250,10 @@ class chaoticumPapillonae {
                 .attr('rx',posis.head.rx)
                 .attr('ry',posis.head.ry)
                 .attr('fill','url(#'+id+'Grad)')
+                /*
                 .attr('stroke-width',3)
                 .attr('stroke',getRndRGBColor(1))
+                */
             setDegrad({'id':id+'Grad','type':'radialGradient'
                 ,'cx':posis.head.cx,'cy':posis.head.cy,'r':posis.head.rx > posis.head.ry ? posis.head.rx : posis.head.ry});
             
@@ -221,15 +267,17 @@ class chaoticumPapillonae {
             posis.body.ry = posis.body.cy-posis.head.cy;
             posis.body.rx = randoms.bodyWidth();
             posis.body.cx = posis.head.cx;
-            body = container.append('g').attr('class',id);
+            body = svg.append('g').attr('class',id);
             body.append('ellipse')
                 .attr('cx',posis.body.cx)
                 .attr('cy',posis.body.cy)
                 .attr('rx',posis.body.rx)
                 .attr('ry',posis.body.ry)
                 .attr('fill','url(#'+id+'Grad)')
+                /*
                 .attr('stroke-width',3)
                 .attr('stroke',getRndRGBColor(1))
+                */
             setDegrad({'id':id+'Grad','type':'radialGradient',
                 'cx':posis.body.cx,'cy':posis.body.cy,
                 'r':posis.body.rx > posis.body.ry ? posis.body.rx : posis.body.ry});
@@ -242,14 +290,16 @@ class chaoticumPapillonae {
             posis.tail.ry = posis.tail.cy+posis.body.cy < size ? posis.tail.cy-posis.body.cy : size-posis.tail.cy-10 ;
             posis.tail.rx = randoms.tailWidth();
             posis.tail.cx =  posis.body.cx;
-            tail = container.append('g').attr('class',id).append('ellipse')
+            tail = svg.append('g').attr('class',id).append('ellipse')
                 .attr('cx',posis.tail.cx)
                 .attr('cy',posis.tail.cy)
                 .attr('rx',posis.tail.rx)
                 .attr('ry',posis.tail.ry)
                 .attr('fill','url(#'+id+'Grad)')
+                /*
                 .attr('stroke-width',3)
                 .attr('stroke',getRndRGBColor(1))
+                */
             setDegrad({'id':id+'Grad','type':'radialGradient',
                 'cx':posis.tail.cx,'cy':posis.tail.cy,'r':posis.tail.rx > posis.tail.ry ? posis.tail.rx : posis.tail.ry});
         }
@@ -258,9 +308,10 @@ class chaoticumPapillonae {
         function setDegrad(params)
         {
             //création du degradé
-            let degrad = defs.append(params.type)
-                .attr('id', params.id)
-                .attr('gradientUnits', "userSpaceOnUse");
+            let defGrad = params.def ? params.def : defs,
+                degrad = defGrad.append(params.type)
+                    .attr('id', params.id)
+                    .attr('gradientUnits', "userSpaceOnUse");
             //ajoute l'orientation verticale ou horizontale
             if(params.type== 'linearGradient' && randoms.gradOrientation())
                 degrad.attr('x1', "0").attr('y1', "0").attr('x2', "0").attr('y2', "1");
@@ -285,7 +336,7 @@ class chaoticumPapillonae {
             //initialise le random
             let colors = [];
             for (let i = 0; i < nb; i++) {
-                colors.push('#' + (Math.random() * 0xffffff | 0).toString(16));
+                colors.push(me.scaleColors ? me.scaleColors(Math.random()) : '#' + (Math.random() * 0xffffff | 0).toString(16));
             }
             return colors;
         }
