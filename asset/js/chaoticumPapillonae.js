@@ -152,7 +152,7 @@ class chaoticumPapillonae {
                 .attr("transform","matrix(-1 0 0 1 "+(2*(posis.head.cx))+" 0)");
 
             //charger le modèle d'aile
-            d3.xml(me.modelesWing[1]).then(data => {
+            d3.xml(me.modelesWing[0]).then(data => {
                 let modeleWingL = document.importNode(data.documentElement, true),
                 modeleWingR = document.importNode(data.documentElement, true);
                 wingL.node().appendChild(modeleWingL);
