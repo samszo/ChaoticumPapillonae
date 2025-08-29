@@ -2,6 +2,7 @@ class chaoticumPapillonae {
     constructor(params) {
         var me = this;
         this.cont = params.cont ? params.cont : d3.select("#"+params.idCont);
+        this.idSvg = params.idSvg ? params.idSvg : "chaoticumPapillonaeSVG";
         this.width = params.width ? params.width : 400;
         this.height = params.height ? params.height : 400;
         this.scaleColors = params.scaleColors ? params.scaleColors : false;
@@ -60,6 +61,7 @@ class chaoticumPapillonae {
                 'antennaeLyT':d3.randomInt(scales.vBand('wing1'), scales.vBand('wing1')+scales.vBand.step()),
             };
             svg = this.cont.append("svg")
+                .attr("id", me.idSvg)
                 .attr("width", me.width)
                 .attr("height", me.height)
                 .attr("preserveAspectRatio","xMidYMid meet");
