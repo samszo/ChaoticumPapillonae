@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Papillon SVG Paramétrable</title>
+<style>
+  :root {
+    /* Variables de couleurs principales - modifiables */
+    --wing-color-1: #ff6b9d;
+    --wing-color-2: #c06c84;
+    --wing-color-3: #6c5b7b;
+    --wing-accent: #f8b195;
+    --body-color: #355c7d;
+    --pattern-color: #ffffff;
+  }
+  body {
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .controls {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: #6c5b7b;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.2s;
+  }
+  button:hover { transform: scale(1.05); }
+  .butterfly-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="generateRandom()">🎲 Générer aléatoire</button>
+  <button onclick="generatePastel()">🌸 Pastel</button>
+  <button onclick="generateVibrant()">🌈 Vif</button>
+  <button onclick="generateDark()">🌙 Sombre</button>
+  <button onclick="randomShape()">🦋 Nouvelle forme</button>
+</div>
+
+<div class="butterfly-container">
+  <svg id="butterfly" width="500" height="400" viewBox="0 0 500 400">
+    <defs>
+      <!-- Dégradés dynamiques -->
+      <radialGradient id="wingGradientLeft" cx="30%" cy="50%">
+        <stop offset="0%" stop-color="var(--wing-accent)"/>
+        <stop offset="100%" stop-color="var(--wing-color-1)"/>
+      </radialGradient>
+      <radialGradient id="wingGradientRight" cx="70%" cy="50%">
+        <stop offset="0%" stop-color="var(--wing-accent)"/>
+        <stop offset="100%" stop-color="var(--wing-color-1)"/>
+      </radialGradient>
+      <linearGradient id="lowerWingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--wing-color-2)"/>
+        <stop offset="100%" stop-color="var(--wing-color-3)"/>
+      </linearGradient>
+      <!-- Filtre d'ombre douce -->
+      <filter id="shadow">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+        <feOffset dx="2" dy="4"/>
+        <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+        <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <g filter="url(#shadow)">
+      <!-- Aile supérieure gauche -->
+      <path id="wingUpperLeft"
+        d="M 250 200 Q 150 80 80 120 Q 40 180 100 240 Q 180 260 250 220 Z"
+        fill="url(#wingGradientLeft)" stroke="var(--body-color)" stroke-width="2"/>
+
+      <!-- Aile supérieure droite (symétrique) -->
+      <path id="wingUpperRight"
+        d="M 250 200 Q 350 80 420 120 Q 460 180 400 240 Q 320 260 250 220 Z"
+        fill="url(#wingGradientRight)" stroke="var(--body-color)" stroke-width="2"/>
+
+      <!-- Aile inférieure gauche -->
+      <path id="wingLowerLeft"
+        d="M 250 220 Q 170 240 120 300 Q 140 360 200 340 Q 240 300 250 260 Z"
+        fill="url(#lowerWingGradient)" stroke="var(--body-color)" stroke-width="2"/>
+
+      <!-- Aile inférieure droite -->
+      <path id="wingLowerRight"
+        d="M 250 220 Q 330 240 380 300 Q 360 360 300 340 Q 260 300 250 260 Z"
+        fill="url(#lowerWingGradient)" stroke="var(--body-color)" stroke-width="2"/>
+
+      <!-- Motifs sur les ailes (cercles) -->
+      <g id="wingPatterns" opacity="0.7">
+        <circle cx="140" cy="170" r="18" fill="var(--pattern-color)"/>
+        <circle cx="140" cy="170" r="10" fill="var(--wing-color-3)"/>
+        <circle cx="360" cy="170" r="18" fill="var(--pattern-color)"/>
+        <circle cx="360" cy="170" r="10" fill="var(--wing-color-3)"/>
+        <circle cx="170" cy="300" r="12" fill="var(--pattern-color)"/>
+        <circle cx="330" cy="300" r="12" fill="var(--pattern-color)"/>
+      </g>
+
+      <!-- Corps du papillon -->
+      <ellipse cx="250" cy="240" rx="10" ry="60" fill="var(--body-color)"/>
+      <!-- Tête -->
+      <circle cx="250" cy="175" r="12" fill="var(--body-color)"/>
+      <!-- Yeux -->
+      <circle cx="245" cy="172" r="2" fill="white"/>
+      <circle cx="255" cy="172" r="2" fill="white"/>
+
+      <!-- Antennes -->
+      <path d="M 245 168 Q 230 140 220 120" stroke="var(--body-color)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M 255 168 Q 270 140 280 120" stroke="var(--body-color)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="220" cy="120" r="4" fill="var(--wing-accent)"/>
+      <circle cx="280" cy="120" r="4" fill="var(--wing-accent)"/>
+    </g>
+  </svg>
+</div>
+
+<script>
+  // Palette de couleurs aléatoires harmonieuses
+  function randomColor() {
+    return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+  }
+
+  function hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+
+  // Génère une palette harmonieuse basée sur une teinte
+  function generatePalette(baseHue, saturation = 70, lightness = 60) {
+    return {
+      wing1: hslToHex(baseHue, saturation, lightness),
+      wing2: hslToHex((baseHue + 30) % 360, saturation, lightness - 10),
+      wing3: hslToHex((baseHue + 60) % 360, saturation - 10, lightness - 20),
+      accent: hslToHex((baseHue + 180) % 360, saturation, lightness + 15),
+      body: hslToHex((baseHue + 200) % 360, 40, 30),
+      pattern: '#ffffff'
+    };
+  }
+
+  function applyPalette(p) {
+    const root = document.documentElement;
+    root.style.setProperty('--wing-color-1', p.wing1);
+    root.style.setProperty('--wing-color-2', p.wing2);
+    root.style.setProperty('--wing-color-3', p.wing3);
+    root.style.setProperty('--wing-accent', p.accent);
+    root.style.setProperty('--body-color', p.body);
+    root.style.setProperty('--pattern-color', p.pattern);
+  }
+
+  // Modifie la forme des ailes
+  function randomShape() {
+    const v = () => 20 + Math.random() * 40; // variation aléatoire
+    const r = (base, range) => base + (Math.random() - 0.5) * range;
+
+    // Aile supérieure gauche
+    document.getElementById('wingUpperLeft').setAttribute('d',
+      `M 250 200 Q ${r(150,60)} ${r(80,40)} ${r(80,30)} ${r(120,40)} Q ${r(40,30)} ${r(180,40)} ${r(100,30)} ${r(240,30)} Q ${r(180,40)} ${r(260,30)} 250 220 Z`
+    );
+    // Aile supérieure droite (symétrique)
+    document.getElementById('wingUpperRight').setAttribute('d',
+      `M 250 200 Q ${r(350,60)} ${r(80,40)} ${r(420,30)} ${r(120,40)} Q ${r(460,30)} ${r(180,40)} ${r(400,30)} ${r(240,30)} Q ${r(320,40)} ${r(260,30)} 250 220 Z`
+    );
+    // Aile inférieure gauche
+    document.getElementById('wingLowerLeft').setAttribute('d',
+      `M 250 220 Q ${r(170,40)} ${r(240,30)} ${r(120,30)} ${r(300,40)} Q ${r(140,30)} ${r(360,30)} ${r(200,30)} ${r(340,30)} Q ${r(240,30)} ${r(300,30)} 250 260 Z`
+    );
+    // Aile inférieure droite
+    document.getElementById('wingLowerRight').setAttribute('d',
+      `M 250 220 Q ${r(330,40)} ${r(240,30)} ${r(380,30)} ${r(300,40)} Q ${r(360,30)} ${r(360,30)} ${r(300,30)} ${r(340,30)} Q ${r(260,30)} ${r(300,30)} 250 260 Z`
+    );
+  }
+
+  function generateRandom() {
+    const hue = Math.random() * 360;
+    applyPalette(generatePalette(hue, 60 + Math.random() * 30, 50 + Math.random() * 20));
+    randomShape();
+  }
+
+  function generatePastel() {
+    applyPalette(generatePalette(Math.random() * 360, 50, 78));
+  }
+
+  function generateVibrant() {
+    applyPalette(generatePalette(Math.random() * 360, 90, 55));
+  }
+
+  function generateDark() {
+    applyPalette(generatePalette(Math.random() * 360, 60, 35));
+  }
+
+  // Génère un papillon au démarrage
+  generateRandom();
+</script>
+
+</body>
+</html>

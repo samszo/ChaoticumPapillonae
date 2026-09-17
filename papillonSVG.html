@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Papillon SVG paramétrable</title>
+<style>
+  :root {
+    --wing-color-1: #ff6b9d;
+    --wing-color-2: #c06c84;
+    --wing-color-3: #6c5b7b;
+    --wing-accent: #f8b195;
+    --body-color: #355c7d;
+    --pattern-color: #ffffff;
+  }
+  body {
+    font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .controls {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 560px;
+  }
+  button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #6c5b7b;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: transform 0.15s;
+  }
+  button:hover { transform: scale(1.05); }
+  .butterfly-container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+  svg { display: block; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="generateRandom()">🎲 Aléatoire</button>
+  <button onclick="applyPalette(generatePalette(Math.random()*360, 50, 78))">🌸 Pastel</button>
+  <button onclick="applyPalette(generatePalette(Math.random()*360, 90, 55))">🌈 Vif</button>
+  <button onclick="applyPalette(generatePalette(Math.random()*360, 60, 32))">🌙 Sombre</button>
+  <button onclick="randomShape()">🦋 Nouvelle forme</button>
+  <button onclick="downloadSVG()">💾 Télécharger</button>
+</div>
+
+<div class="butterfly-container">
+  <svg id="butterfly" width="500" height="400" viewBox="0 0 500 400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="wingGradientLeft" cx="30%" cy="50%">
+        <stop offset="0%" stop-color="var(--wing-accent)"/>
+        <stop offset="100%" stop-color="var(--wing-color-1)"/>
+      </radialGradient>
+      <radialGradient id="wingGradientRight" cx="70%" cy="50%">
+        <stop offset="0%" stop-color="var(--wing-accent)"/>
+        <stop offset="100%" stop-color="var(--wing-color-1)"/>
+      </radialGradient>
+      <linearGradient id="lowerWingGradientLeft" x1="100%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="var(--wing-color-2)"/>
+        <stop offset="100%" stop-color="var(--wing-color-3)"/>
+      </linearGradient>
+      <linearGradient id="lowerWingGradientRight" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--wing-color-2)"/>
+        <stop offset="100%" stop-color="var(--wing-color-3)"/>
+      </linearGradient>
+      <filter id="shadow">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+        <feOffset dx="2" dy="4"/>
+        <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+        <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <g filter="url(#shadow)">
+      <path id="wingUpperLeft" fill="url(#wingGradientLeft)" stroke="var(--body-color)" stroke-width="2"/>
+      <path id="wingUpperRight" fill="url(#wingGradientRight)" stroke="var(--body-color)" stroke-width="2"/>
+      <path id="wingLowerLeft" fill="url(#lowerWingGradientLeft)" stroke="var(--body-color)" stroke-width="2"/>
+      <path id="wingLowerRight" fill="url(#lowerWingGradientRight)" stroke="var(--body-color)" stroke-width="2"/>
+
+      <g id="wingPatterns" opacity="0.75"></g>
+
+      <ellipse cx="250" cy="240" rx="10" ry="60" fill="var(--body-color)"/>
+      <circle cx="250" cy="175" r="12" fill="var(--body-color)"/>
+      <circle cx="245" cy="172" r="2" fill="white"/>
+      <circle cx="255" cy="172" r="2" fill="white"/>
+
+      <path d="M 245 168 Q 230 140 220 120" stroke="var(--body-color)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M 255 168 Q 270 140 280 120" stroke="var(--body-color)" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="220" cy="120" r="4" fill="var(--wing-accent)"/>
+      <circle cx="280" cy="120" r="4" fill="var(--wing-accent)"/>
+    </g>
+  </svg>
+</div>
+
+<script>
+  const CX = 250; // axe de symétrie du papillon
+  const mirrorX = x => 2 * CX - x;
+
+  // --- Couleurs ---------------------------------------------------------
+
+  function hslToHex(h, s, l) {
+    l /= 100;
+    const a = s * Math.min(l, 1 - l) / 100;
+    const f = n => {
+      const k = (n + h / 30) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
+  }
+
+  function generatePalette(baseHue, saturation = 70, lightness = 60) {
+    return {
+      wing1: hslToHex(baseHue, saturation, lightness),
+      wing2: hslToHex((baseHue + 30) % 360, saturation, lightness - 10),
+      wing3: hslToHex((baseHue + 60) % 360, saturation - 10, lightness - 20),
+      accent: hslToHex((baseHue + 180) % 360, saturation, lightness + 15),
+      body: hslToHex((baseHue + 200) % 360, 40, 30),
+      pattern: '#ffffff'
+    };
+  }
+
+  function applyPalette(p) {
+    const root = document.documentElement;
+    root.style.setProperty('--wing-color-1', p.wing1);
+    root.style.setProperty('--wing-color-2', p.wing2);
+    root.style.setProperty('--wing-color-3', p.wing3);
+    root.style.setProperty('--wing-accent', p.accent);
+    root.style.setProperty('--body-color', p.body);
+    root.style.setProperty('--pattern-color', p.pattern);
+  }
+
+  // --- Forme des ailes (générée à gauche, reflétée à droite) ------------
+
+  const r = (base, range) => Math.round(base + (Math.random() - 0.5) * range);
+
+  function buildUpperWingPath(mirror) {
+    // Points définis côté gauche ; le corps est l'attache fixe (250,200)/(250,220)
+    const c1 = { x: r(150, 70), y: r(80, 50) };
+    const e1 = { x: r(80, 40), y: r(120, 50) };
+    const c2 = { x: r(40, 40), y: r(180, 50) };
+    const e2 = { x: r(100, 40), y: r(240, 40) };
+    const c3 = { x: r(180, 50), y: r(260, 40) };
+    const pts = [c1, e1, c2, e2, c3];
+    const tx = p => mirror ? mirrorX(p.x) : p.x;
+    return `M 250 200 Q ${tx(c1)} ${c1.y} ${tx(e1)} ${e1.y} `
+         + `Q ${tx(c2)} ${c2.y} ${tx(e2)} ${e2.y} `
+         + `Q ${tx(c3)} ${c3.y} 250 220 Z`;
+  }
+
+  function buildLowerWingPath(mirror) {
+    const c1 = { x: r(170, 50), y: r(240, 30) };
+    const e1 = { x: r(120, 40), y: r(300, 50) };
+    const c2 = { x: r(140, 40), y: r(360, 40) };
+    const e2 = { x: r(200, 40), y: r(340, 40) };
+    const c3 = { x: r(240, 30), y: r(300, 30) };
+    const tx = p => mirror ? mirrorX(p.x) : p.x;
+    return `M 250 220 Q ${tx(c1)} ${c1.y} ${tx(e1)} ${e1.y} `
+         + `Q ${tx(c2)} ${c2.y} ${tx(e2)} ${e2.y} `
+         + `Q ${tx(c3)} ${c3.y} 250 260 Z`;
+  }
+
+  function randomShape() {
+    document.getElementById('wingUpperLeft').setAttribute('d', buildUpperWingPath(false));
+    document.getElementById('wingUpperRight').setAttribute('d', buildUpperWingPath(true));
+    document.getElementById('wingLowerLeft').setAttribute('d', buildLowerWingPath(false));
+    document.getElementById('wingLowerRight').setAttribute('d', buildLowerWingPath(true));
+    randomPatterns();
+  }
+
+  // --- Motifs (ronds / ocelles), symétriques ----------------------------
+
+  function randomPatterns() {
+    const g = document.getElementById('wingPatterns');
+    g.innerHTML = '';
+    const spotCount = 1 + Math.floor(Math.random() * 3); // 1 à 3 ocelles par aile
+    for (let i = 0; i < spotCount; i++) {
+      const x = r(150, 60);
+      const y = r(160, 60);
+      const rOuter = 8 + Math.random() * 14;
+      addSpotPair(g, x, y, rOuter, true);
+    }
+    const dotCount = Math.floor(Math.random() * 3); // 0 à 2 petits points sur l'aile inférieure
+    for (let i = 0; i < dotCount; i++) {
+      const x = r(190, 40);
+      const y = r(310, 40);
+      addSpotPair(g, x, y, 6 + Math.random() * 6, false);
+    }
+  }
+
+  function addSpotPair(g, x, y, rOuter, ocellus) {
+    [false, true].forEach(mirror => {
+      const px = mirror ? mirrorX(x) : x;
+      if (ocellus) {
+        g.appendChild(circle(px, y, rOuter, 'var(--pattern-color)'));
+        g.appendChild(circle(px, y, rOuter * 0.55, 'var(--wing-color-3)'));
+      } else {
+        g.appendChild(circle(px, y, rOuter, 'var(--pattern-color)'));
+      }
+    });
+  }
+
+  function circle(cx, cy, radius, fill) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    el.setAttribute('cx', cx);
+    el.setAttribute('cy', cy);
+    el.setAttribute('r', radius);
+    el.setAttribute('fill', fill);
+    return el;
+  }
+
+  // --- Actions globales ---------------------------------------------------
+
+  function generateRandom() {
+    const hue = Math.random() * 360;
+    applyPalette(generatePalette(hue, 60 + Math.random() * 30, 50 + Math.random() * 20));
+    randomShape();
+  }
+
+  function downloadSVG() {
+    const svg = document.getElementById('butterfly');
+    const clone = svg.cloneNode(true);
+    // Fige les couleurs (var(--...)) en valeurs statiques pour un SVG autonome
+    const style = getComputedStyle(document.documentElement);
+    let css = ':root{';
+    ['--wing-color-1','--wing-color-2','--wing-color-3','--wing-accent','--body-color','--pattern-color']
+      .forEach(v => css += `${v}:${style.getPropertyValue(v).trim()};`);
+    css += '}';
+    const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    styleEl.textContent = css;
+    clone.insertBefore(styleEl, clone.firstChild);
+
+    const data = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'papillon.svg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  generateRandom();
+</script>
+
+</body>
+</html>
