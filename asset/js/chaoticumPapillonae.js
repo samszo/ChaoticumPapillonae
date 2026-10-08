@@ -6,17 +6,18 @@ class chaoticumPapillonae {
         this.width = params.width ? params.width : 400;
         this.height = params.height ? params.height : 400;
         this.scaleColors = params.scaleColors ? params.scaleColors : false;
-        this.modelesWing = params.modelesWing ? params.modelesWing : [
-            "asset/svg/papiAile.svg",
-            "asset/svg/papiAile1.svg"
-        ];
+        this.modelesWing = params.modelesWing ? params.modelesWing : chaoticumPapillonae.modelesWing;
+        //modèle d'aile imposé, sinon tirage aléatoire dans modelesWing
+        this.modeleWing = params.modeleWing ? params.modeleWing
+            : this.modelesWing[d3.randomInt(this.modelesWing.length)()];
         let svg, defs, randoms, scales, 
             posis={
                 'head':{'cx':0,'cy':0,'rx':0,'ry':0},
                 'body':{'cx':0,'cy':0,'rx':0,'ry':0},
                 'tail':{'cx':0,'cy':0,'rx':0,'ry':0},
             },
-            vParts, hParts, recou, size = 600, head, body, tail;
+            vParts, hParts, recou, size = 600, head, body, tail,
+            queueMin = 30;  //longueur minimale de queue visible sous le corps
 
         this.init = function () {
             vParts = [
@@ -79,8 +80,10 @@ class chaoticumPapillonae {
             setGrille();
             */
 
-            setHead();
+            getHeadPosis();
+            getBodyPosis();
             setWings();
+            setHead();
             setBody();
             setTail();
             setAntennae();
@@ -151,16 +154,18 @@ class chaoticumPapillonae {
         function setWings(){
             let wingL = svg.append("g").attr('id','wingL'),
             wingR = svg.append("g").attr('id','wingR')
-                .attr("transform","matrix(-1 0 0 1 "+(2*(posis.head.cx))+" 0)");
+                .attr("transform","matrix(-1 0 0 1 "+(2*(posis.head.cx))+" 0)")
+                .append("g");
 
             //charger le modèle d'aile
-            d3.xml(me.modelesWing[0]).then(data => {
+            d3.xml(me.modeleWing).then(data => {
                 let modeleWingL = document.importNode(data.documentElement, true),
                 modeleWingR = document.importNode(data.documentElement, true);
                 wingL.node().appendChild(modeleWingL);
-                wingL.select('svg').attr('width',size/2).attr('height',size);
                 wingR.node().appendChild(modeleWingR);
-                wingR.select('svg').attr('width',size/2).attr('height',size);
+                //même placement pour les deux ailes (l'aile droite est le miroir de la gauche)
+                wingR.attr('transform', placeWing(wingL));
+                tailleSvgModele(wingR);
                 //calcule les dégradés pour chaque élément
                 wingL.select('svg').selectAll('path').each(setPathDegrad);
                 wingL.select('svg').selectAll('ellipse').each(setPathDegrad);
@@ -170,6 +175,98 @@ class chaoticumPapillonae {
                 wingR.select('svg').selectAll('circle').each(setPathDegrad);
             });
         }
+        function tailleSvgModele(g){
+            //le svg du modèle est affiché à sa taille réelle : 1 unité = 1 unité du viewBox
+            let m = g.select('svg'),
+                vb = m.node().viewBox.baseVal;
+            m.attr('x',0).attr('y',0)
+                .attr('width',vb && vb.width ? vb.width : m.attr('width'))
+                .attr('height',vb && vb.height ? vb.height : m.attr('height'));
+            return m;
+        }
+
+        function placeWing(g){
+            let m = tailleSvgModele(g);
+
+            //points des contours exprimés dans le repère du groupe g
+            let pts = [], gInv = g.node().getScreenCTM().inverse();
+            m.selectAll('path').each(function(){
+                let len = this.getTotalLength(),
+                    mat = gInv.multiply(this.getScreenCTM());
+                for (let l = 0; l <= len; l += len/200)
+                    pts.push(this.getPointAtLength(l).matrixTransform(mat));
+            });
+            if(!pts.length) return null;
+            let x0 = d3.min(pts, p=>p.x), x1 = d3.max(pts, p=>p.x),
+                y0 = d3.min(pts, p=>p.y), y1 = d3.max(pts, p=>p.y),
+                ax = x1;
+
+            //zone d'attache = bande du bord droit de l'aile, qui doit être dans le corps
+            let zone = pts.filter(p => p.x >= ax - (ax-x0)*0.06),
+                zt = d3.min(zone, p=>p.y),
+                cx = posis.body.cx, rx0 = posis.body.rx,
+                haut = posis.head.cy,           //le haut du corps reste sous la tête
+                bx = cx - rx0*0.5,              //l'attache est à mi-chemin entre bord et centre du corps
+                sMax = (bx - 5)/(ax - x0),
+                choix = null;
+
+            //cherche la plus grande aile, puis le plus petit décalage vers le bas,
+            //pour lesquels une ellipse de corps (haut fixé sous la tête) contient l'attache
+            for (let i = 0; i < 12 && !choix; i++) {
+                let s = sMax * Math.pow(0.92, i);
+                for (let off = posis.head.ry*0.3; off < size/3 && !choix; off += 10) {
+                    let tx = bx - s*ax, ty = haut + off - s*zt;
+                    if (ty + s*y0 < 5 || ty + s*y1 > size - 5) continue;
+                    let z = zone.map(p => ({'x':tx + s*p.x, 'y':ty + s*p.y})),
+                        corps = corpsPourAttache(z, cx, rx0, haut);
+                    if (corps) choix = {'s':s, 'tx':tx, 'ty':ty, 'corps':corps};
+                }
+            }
+            if (choix) ajusteBody(choix.corps);
+            //aucune solution : aile réduite placée sous la tête, corps inchangé
+            else choix = {'s':sMax/2, 'tx':bx - sMax/2*ax, 'ty':haut - sMax/2*zt};
+            let t = 'translate('+choix.tx+' '+choix.ty+') scale('+choix.s+')';
+            g.attr('transform', t);
+            return t;
+        }
+
+        //ellipse de corps (haut fixé) contenant tous les points de la zone d'attache
+        function corpsPourAttache(z, cx, rx0, haut){
+            let rx = Math.max(rx0, (cx - d3.min(z, p=>p.x))/0.8),
+                //laisse de la place pour la queue sous le corps
+                ryMax = (size - 5 - queueMin - haut)/2;
+            for (let ry = Math.max(posis.body.ry, (d3.max(z, p=>p.y) - haut)/2); ry <= ryMax; ry += 4) {
+                let cy = haut + ry;
+                if (z.every(p => ((p.x-cx)/rx)**2 + ((p.y-cy)/ry)**2 <= 1))
+                    return {'cy':cy, 'rx':rx, 'ry':ry};
+            }
+            return null;
+        }
+
+        function ajusteBody(corps){
+            //longueur de queue visible sous le corps avant ajustement
+            let visible = Math.max(queueMin,
+                (posis.tail.cy + posis.tail.ry) - (posis.body.cy + posis.body.ry));
+            posis.body.cy = corps.cy;
+            posis.body.rx = corps.rx;
+            posis.body.ry = corps.ry;
+            body.select('ellipse').attr('cy', corps.cy).attr('rx', corps.rx).attr('ry', corps.ry);
+            defs.select('#cpBodyGrad').attr('cy', corps.cy)
+                .attr('r', corps.rx > corps.ry ? corps.rx : corps.ry);
+            ajusteTail(visible);
+        }
+
+        //recale la queue : elle part du centre du corps et dépasse sous le corps
+        function ajusteTail(visible){
+            let haut = posis.body.cy,
+                bas = Math.min(posis.body.cy + posis.body.ry + visible, size - 5);
+            posis.tail.cy = (haut + bas)/2;
+            posis.tail.ry = (bas - haut)/2;
+            tail.attr('cy', posis.tail.cy).attr('ry', posis.tail.ry);
+            defs.select('#cpTailGrad').attr('cy', posis.tail.cy)
+                .attr('r', posis.tail.rx > posis.tail.ry ? posis.tail.rx : posis.tail.ry);
+        }
+
         function setPathDegrad(e,d){
             let bb = this.getBBox(),
                 s = d3.select(this),
@@ -226,13 +323,16 @@ class chaoticumPapillonae {
                 .text(h=>"H"+h);            
         }
 
-        function setHead(){
-
-            let id='cpHead'; 
+        function getHeadPosis(){
             posis.head.rx = randoms.headWidth();
             posis.head.ry = randoms.headHeight(); 
             posis.head.cx = scales.hBand("head-tail")+scales.hBand.bandwidth()/2; 
             posis.head.cy = randoms.headCenter();
+        }
+
+        function setHead(){
+
+            let id='cpHead'; 
             head = svg.append('g').attr('class',id);
             //création des yeux
             head.append('circle')
@@ -261,14 +361,17 @@ class chaoticumPapillonae {
             
         }
 
-        function setBody(){
-
-            // Creation du corps
-            let id='cpBody';
+        function getBodyPosis(){
             posis.body.cy = randoms.bodyCenter();
             posis.body.ry = posis.body.cy-posis.head.cy;
             posis.body.rx = randoms.bodyWidth();
             posis.body.cx = posis.head.cx;
+        }
+
+        function setBody(){
+
+            // Creation du corps
+            let id='cpBody';
             body = svg.append('g').attr('class',id);
             body.append('ellipse')
                 .attr('cx',posis.body.cx)
@@ -354,6 +457,14 @@ class chaoticumPapillonae {
         me.init();
     }
 
+    //modèles d'aile disponibles : exemples dessinés + ailes extraites par extractPapillons.py (symétrie > 0,80)
+    static modelesWing = [
+        "asset/svg/papiAile.svg",
+        "asset/svg/papiAile1.svg",
+        ...[1,2,3,4,5,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,
+            31,32,33,34,35,36,37,38,39,40,41,42,43,45,46,47,48,49,50,51,52,56,57,58,59,60,
+            61,62,63,64,66,67,68,69,71,72,73,74,75,78,80,82,83]
+            .map(n => "papillons_svg/papillon_"+String(n).padStart(2,"0")+".svg")
+    ];
+
 }
-
-

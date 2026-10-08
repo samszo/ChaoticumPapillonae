@@ -24,12 +24,55 @@
             height: 100%;
             width: 100%;
         }
+
+        /* panneau des options de génération */
+        #options {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000000;
+            width: 260px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            font: 14px sans-serif;
+        }
+        #options label { display: block; margin: 10px 0 4px; font-weight: bold; }
+        #options button.action { width: 100%; padding: 8px; margin-top: 6px; cursor: pointer; }
+        .choix { position: relative; }
+        .choix-btn {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            padding: 4px 6px; background: #fff; border: 1px solid #999; border-radius: 4px;
+            cursor: pointer; text-align: left; font: inherit;
+        }
+        .choix-btn::after { content: "▾"; margin-left: auto; }
+        .choix-liste {
+            display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+            max-height: 60vh; overflow-y: auto; background: #fff;
+            border: 1px solid #999; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+        .choix.ouvert .choix-liste { display: block; }
+        .choix-item { display: flex; align-items: center; gap: 8px; padding: 4px 6px; cursor: pointer; }
+        .choix-item:hover, .choix-item.actif { background: #e8eefc; }
+        .apercu-aile { width: 40px; height: 48px; object-fit: contain; flex: none; }
+        .choix-btn .apercu-aile { width: 20px; height: 20px; }
+        .apercu-palette { width: 90px; height: 16px; border-radius: 3px; flex: none; }
+        .choix-groupe { padding: 6px 6px 2px; font-size: 12px; color: #666; font-weight: bold; }
     </style>
 </head>
 
 <body>
     <img src="asset/svg/file-export-solid.svg" alt="sauver" style="z-index: 1000000;position: absolute; top: 10px; right: 10px; width: 50px; height: 50px; cursor: pointer;" onclick="savePapi()" title="Sauvegarder le papillon en SVG" />
     <img src="asset/img/take-photo.png" alt="sauver" style="z-index: 1000000;position: absolute; top: 10px; right: 70px; width: 50px; height: 50px; cursor: pointer;" onclick="takePhoto()" title="Sauvegarder le papillon en PNG" />
+    <div id="options">
+        <button class="action" onclick="genererAleatoire()">🎲 Papillon complètement aléatoire</button>
+        <label>Forme des ailes</label>
+        <div class="choix" id="choixAile"></div>
+        <label>Palette de couleurs</label>
+        <div class="choix" id="choixPalette"></div>
+        <button class="action" onclick="generer()">Générer avec ces choix</button>
+    </div>
     <div id="mainPapi"></div>
 
     <script>
@@ -43,22 +86,97 @@
             .style('width', taille + 'px'),
             contSvg = cont.append('div').attr("id", "div" + params.idSvg)
             .attr('class', 'divPapi');
-        let papi = new chaoticumPapillonae({
-            'cont': contSvg,
-            'idSvg': params.idSvg,
-            'params': params,
-            'height':1000,
-            'width':1000,
-            'scaleColors':d3.scaleSequential(d3.interpolateRainbow)
-            /* cf. https://d3js.org/d3-scale-chromatic
-            d3.scaleSequential(d3.interpolateYlOrRd)
-            d3.scaleSequential(d3.interpolateMagma)
-            d3.scaleSequential(d3.interpolateBlues)
-            d3.scaleOrdinal(d3.schemeAccent)
-            d3.scaleSequential(d3.interpolateRainbow)
-            d3.scaleSequential(d3.interpolatePiYG)
-            */
-        });
+        //palettes de d3-scale-chromatic, cf. https://d3js.org/d3-scale-chromatic
+        const palettes = {
+            "Séquentielles (une teinte)": ["Blues", "Greens", "Greys", "Oranges", "Purples", "Reds"],
+            "Séquentielles (plusieurs teintes)": ["BuGn", "BuPu", "GnBu", "OrRd", "PuBuGn", "PuBu", "PuRd", "RdPu",
+                "YlGnBu", "YlGn", "YlOrBr", "YlOrRd", "Turbo", "Viridis", "Inferno", "Magma", "Plasma", "Cividis",
+                "Warm", "Cool", "CubehelixDefault"],
+            "Cycliques": ["Rainbow", "Sinebow"],
+            "Divergentes": ["BrBG", "PRGn", "PiYG", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral"],
+            "Catégorielles": ["Category10", "Accent", "Dark2", "Observable10", "Paired", "Pastel1", "Pastel2",
+                "Set1", "Set2", "Set3", "Tableau10"]
+        };
+        //renvoie une fonction t ∈ [0,1] -> couleur, ou false pour des couleurs RVB au hasard
+        function getScaleColors(nom) {
+            if (nom == "RVB") return false;
+            if (d3["interpolate" + nom]) return d3.scaleSequential(d3["interpolate" + nom]);
+            let scheme = d3["scheme" + nom];
+            return t => scheme[Math.min(scheme.length - 1, Math.floor(t * scheme.length))];
+        }
+        function getCssPalette(nom) {
+            if (nom == "RVB") return "linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)";
+            if (d3["interpolate" + nom])
+                return "linear-gradient(90deg," + d3.range(11).map(i => d3["interpolate" + nom](i / 10)).join(",") + ")";
+            let scheme = d3["scheme" + nom], w = 100 / scheme.length;
+            return "linear-gradient(90deg," + scheme.map((c, i) => c + " " + (i * w) + "%," + c + " " + ((i + 1) * w) + "%").join(",") + ")";
+        }
+        const nomsPalettes = ["RVB", ...Object.values(palettes).flat()].filter(n => n == "RVB" || d3["interpolate" + n] || d3["scheme" + n]);
+        const modelesWing = chaoticumPapillonae.modelesWing;
+        const nomAile = url => url.split("/").pop().replace(".svg", "");
+
+        //liste déroulante avec aperçu
+        function creerChoix(id, groupes, apercu, defaut) {
+            let choix = d3.select("#" + id), valeur = defaut,
+                btn = choix.append("button").attr("class", "choix-btn"),
+                liste = choix.append("div").attr("class", "choix-liste");
+            function afficher(v) {
+                btn.html("");
+                if (v != "aleatoire") apercu(btn, v);
+                btn.append("span").text(v == "aleatoire" ? "🎲 Aléatoire" : (id == "choixAile" ? nomAile(v) : v));
+                liste.selectAll(".choix-item").classed("actif", d => d == v);
+            }
+            let tous = [["", ["aleatoire"]], ...Object.entries(groupes)];
+            tous.forEach(([titre, items]) => {
+                if (titre) liste.append("div").attr("class", "choix-groupe").text(titre);
+                let it = liste.selectAll(null).data(items).enter().append("div").attr("class", "choix-item")
+                    .on("click", (e, d) => { valeur = d; afficher(d); choix.classed("ouvert", false); });
+                it.each(function (d) {
+                    let el = d3.select(this);
+                    if (d != "aleatoire") apercu(el, d);
+                    el.append("span").text(d == "aleatoire" ? "🎲 Aléatoire" : (id == "choixAile" ? nomAile(d) : d));
+                });
+            });
+            btn.on("click", e => { e.stopPropagation(); choix.classed("ouvert", !choix.classed("ouvert")); });
+            d3.select(document).on("click." + id, e => { if (!choix.node().contains(e.target)) choix.classed("ouvert", false); });
+            afficher(valeur);
+            return { valeur: () => valeur, set: v => { valeur = v; afficher(v); } };
+        }
+        const choixAile = creerChoix("choixAile",
+            { "Ailes dessinées": modelesWing.filter(m => m.startsWith("asset/")),
+              "Ailes extraites de la planche": modelesWing.filter(m => !m.startsWith("asset/")) },
+            (el, v) => el.append("img").attr("class", "apercu-aile").attr("src", v).attr("loading", "lazy"),
+            "aleatoire");
+        let groupesPalettes = { "Couleurs au hasard": ["RVB"] };
+        Object.entries(palettes).forEach(([g, noms]) => groupesPalettes[g] = noms.filter(n => nomsPalettes.includes(n)));
+        const choixPalette = creerChoix("choixPalette", groupesPalettes,
+            (el, v) => el.append("span").attr("class", "apercu-palette").style("background", getCssPalette(v)),
+            "Rainbow");
+
+        let papi;
+        function creerPapillon(modeleWing, palette) {
+            contSvg.html("");
+            papi = new chaoticumPapillonae({
+                'cont': contSvg,
+                'idSvg': params.idSvg,
+                'params': params,
+                'height': 1000,
+                'width': 1000,
+                'modeleWing': modeleWing,
+                'scaleColors': getScaleColors(palette)
+            });
+        }
+        function generer() {
+            let aile = choixAile.valeur(), palette = choixPalette.valeur();
+            creerPapillon(aile == "aleatoire" ? d3.shuffle(modelesWing.slice())[0] : aile,
+                palette == "aleatoire" ? d3.shuffle(nomsPalettes.slice())[0] : palette);
+        }
+        function genererAleatoire() {
+            choixAile.set("aleatoire");
+            choixPalette.set("aleatoire");
+            generer();
+        }
+        generer();
         function savePapi() {
             let svg = d3.select("#div" + params.idSvg).select("svg");
             if (svg.empty()) {
