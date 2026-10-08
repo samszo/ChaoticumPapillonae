@@ -1,0 +1,14 @@
+.git
+.gitignore
+.claude
+.vscode
+__pycache__
+data
+archives
+library
+*.php
+*.htm
+exctractAile.py
+asset/img/sources
+deploy/.env
+.env

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sommaire — Chaoticum Papillonae</title>
+<style>
+  :root { --fond: #fdfcf8; --texte: #222; --doux: #666; --lien: #2a5db0; --code: #f1efe8; --bord: #ddd8cc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fond: #1d1c1a; --texte: #e8e6e1; --doux: #a29f97; --lien: #8ab4f8; --code: #2a2926; --bord: #3d3b37; }
+  }
+  body { margin: 0; background: var(--fond); color: var(--texte);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  nav { border-bottom: 1px solid var(--bord); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  nav a { color: var(--lien); text-decoration: none; }
+  nav a.actif { font-weight: bold; color: var(--texte); }
+  main { max-width: 900px; margin: 0 auto; padding: 8px 16px 48px; }
+  h1 { font-family: Georgia, serif; font-style: italic; }
+  h2 { border-bottom: 1px solid var(--bord); padding-bottom: 4px; margin-top: 2em; }
+  a { color: var(--lien); }
+  code { background: var(--code); padding: 1px 4px; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code); padding: 12px; border-radius: 6px; overflow-x: auto; }
+  pre code { padding: 0; background: none; }
+  pre.mermaid { background: none; text-align: center; }
+  table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1em 0; }
+  th, td { border: 1px solid var(--bord); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--code); }
+  blockquote { margin: 1em 0; padding: 4px 14px; border-left: 4px solid var(--bord); color: var(--doux); }
+</style>
+</head>
+<body>
+<nav><a href="index.html" class="actif">Sommaire</a> <a href="utilisation.html">Manuel d&#x27;utilisation</a> <a href="installation.html">Installation</a> <a href="technique.html">Documentation technique</a> <a href="../index.html">← Retour aux papillons</a></nav>
+<main id="contenu"></main>
+<script type="text/markdown" id="md"># Chaoticum Papillonae — documentation
+
+Générateur de papillons imaginaires en SVG, à partir de formes d'ailes extraites de planches d'histoire naturelle.
+
+| Document | Pour qui | Contenu |
+|---|---|---|
+| [Manuel d'utilisation](utilisation.md) | Toute personne qui utilise la page | Générer, choisir aile et palette, nom latin, enregistrer, importer une planche |
+| [Installation](installation.md) | Administration | Installation locale, mise en ligne Docker sur un VPS Debian, comptes, sauvegardes |
+| [Documentation technique](technique.md) | Développement | Architecture, algorithmes de génération et d'extraction, API, sécurité |
+
+```mermaid
+flowchart LR
+    Planche[Planche d'histoire naturelle] -->|extractPapillons.py| Ailes[Ailes SVG]
+    Ailes --> Gen[chaoticumPapillonae.js]
+    Palette[Palette de couleurs] --> Gen
+    Hasard[Morphologie au hasard] --> Gen
+    Gen --> Papillon[Papillon SVG + nom latin]
+```
+</script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  const md = document.getElementById("md").textContent
+    .replace(/<\\\/script/gi, "</script");
+  const main = document.getElementById("contenu");
+  main.innerHTML = marked.parse(md);
+  // liens vers les autres documents : .md -> .html
+  main.querySelectorAll("a[href$='.md']").forEach(a => a.href = a.getAttribute("href").replace(/\.md$/, ".html"));
+  // blocs ```mermaid -> diagrammes
+  main.querySelectorAll("pre > code.language-mermaid").forEach(c => {
+    const pre = document.createElement("pre");
+    pre.className = "mermaid";
+    pre.textContent = c.textContent;
+    c.parentElement.replaceWith(pre);
+  });
+  const sombre = matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: false, theme: sombre ? "dark" : "default", securityLevel: "strict" });
+  mermaid.run();
+</script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation technique — Chaoticum Papillonae</title>
+<style>
+  :root { --fond: #fdfcf8; --texte: #222; --doux: #666; --lien: #2a5db0; --code: #f1efe8; --bord: #ddd8cc; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fond: #1d1c1a; --texte: #e8e6e1; --doux: #a29f97; --lien: #8ab4f8; --code: #2a2926; --bord: #3d3b37; }
+  }
+  body { margin: 0; background: var(--fond); color: var(--texte);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  nav { border-bottom: 1px solid var(--bord); padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  nav a { color: var(--lien); text-decoration: none; }
+  nav a.actif { font-weight: bold; color: var(--texte); }
+  main { max-width: 900px; margin: 0 auto; padding: 8px 16px 48px; }
+  h1 { font-family: Georgia, serif; font-style: italic; }
+  h2 { border-bottom: 1px solid var(--bord); padding-bottom: 4px; margin-top: 2em; }
+  a { color: var(--lien); }
+  code { background: var(--code); padding: 1px 4px; border-radius: 3px; font-size: 0.92em; }
+  pre { background: var(--code); padding: 12px; border-radius: 6px; overflow-x: auto; }
+  pre code { padding: 0; background: none; }
+  pre.mermaid { background: none; text-align: center; }
+  table { border-collapse: collapse; display: block; overflow-x: auto; margin: 1em 0; }
+  th, td { border: 1px solid var(--bord); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--code); }
+  blockquote { margin: 1em 0; padding: 4px 14px; border-left: 4px solid var(--bord); color: var(--doux); }
+</style>
+</head>
+<body>
+<nav><a href="index.html">Sommaire</a> <a href="utilisation.html">Manuel d&#x27;utilisation</a> <a href="installation.html">Installation</a> <a href="technique.html" class="actif">Documentation technique</a> <a href="../index.html">← Retour aux papillons</a></nav>
+<main id="contenu"></main>
+<script type="text/markdown" id="md"># Documentation technique
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Navigateur
+        P[index.html<br/>panneau d'options] --> C[chaoticumPapillonae.js<br/>classe de génération]
+        C -->|d3.xml| W[(ailes SVG)]
+        C -->|d3.json| M[(modeles.json)]
+    end
+    subgraph Serveur["serveur.py (Python, stdlib)"]
+        S[Fichiers publics] 
+        A[API : connexion, moi, extraire]
+        A --> X[extractPapillons.py<br/>OpenCV + NumPy]
+    end
+    P -->|POST api/extraire| A
+    P -->|GET| S
+    X --> W
+    X --> M
+    X --> E[(PNG détourés)]
+    X --> SRC[(planches sources)]
+    A --> U[(data/utilisateurs.json)]
+```
+
+| Fichier | Rôle |
+|---|---|
+| `index.html` | Interface : panneau d'options, listes avec aperçus, import, export PNG/SVG |
+| `asset/js/chaoticumPapillonae.js` | Classe qui construit le papillon SVG avec D3 v7 |
+| `asset/js/ailesGenerees.js` | Modèle de nervation : génère des ailes (`genere:<graine>`) |
+| `extractPapillons.py` | Détection des papillons d'une planche et vectorisation d'une aile |
+| `serveur.py` | Serveur HTTP : fichiers publics, comptes, sessions, API d'import |
+| `papillons_svg/modeles.json` | Manifeste des ailes extraites |
+| `papillons_svg/*.svg`, `papillons_extraits/*.png` | Ailes vectorisées et papillons détourés |
+| `asset/svg/papiAile*.svg` | Ailes dessinées à la main (Inkscape) |
+| `Dockerfile`, `docker-compose.yml`, `deploy/Caddyfile` | Mise en ligne |
+
+## Génération d'un papillon (navigateur)
+
+```mermaid
+sequenceDiagram
+    participant I as index.html
+    participant C as chaoticumPapillonae
+    participant D as Serveur
+    I->>C: chargerModeles()
+    C->>D: GET papillons_svg/modeles.json
+    D-->>C: ailes (sym ≥ 0,80) groupées par planche
+    I->>C: new chaoticumPapillonae({modeleWing, scaleColors, nomPalette, onReady})
+    C->>C: tête, corps (provisoire), antennes, queue
+    C->>D: GET modèle d'aile SVG
+    D-->>C: SVG
+    C->>C: placeWing() : échelle + ancrage dans le corps
+    C->>C: ajusteBody(), ajusteTail()
+    C->>C: dégradés radiaux sur chaque forme
+    C->>C: genererNom()
+    C-->>I: onReady(papillon) → affichage du nom
+```
+
+### Construction
+
+Le papillon est dessiné dans un carré de 600 × 600 unités, découpé en bandes (`d3.scaleBand`) verticales (`wing1…tail3`) et horizontales (`wing1…wing6`) qui bornent les tirages aléatoires de la tête, du corps, de la queue et des antennes.
+
+- **Antennes** : une courbe de Bézier quadratique (`Q` puis `T`) dont tous les points de contrôle sont à gauche de l'axe ; l'antenne droite est son miroir. Une courbe restant dans l'enveloppe convexe de ses points de contrôle, les deux antennes ne se croisent jamais.
+- **Ailes** : le modèle SVG est importé deux fois ; l'aile droite est le miroir (`matrix(-1 0 0 1 2cx 0)`) de la gauche, avec le même placement.
+- **Couleurs** : chaque forme reçoit un dégradé radial dont les arrêts sont tirés dans la palette (`scaleColors(Math.random())`), ou en RVB pur sans palette.
+
+### Placement des ailes dans le corps
+
+```mermaid
+flowchart TD
+    A[Échantillonner les contours de l'aile<br/>getPointAtLength] --> B[Zone d'attache =<br/>6 % de l'aile côté corps]
+    B --> C[Échelle maximale :<br/>l'aile tient dans le cadre]
+    C --> D[Placer le haut de l'attache<br/>sous la tête]
+    D --> E{Existe-t-il une ellipse de corps<br/>haut fixé sous la tête<br/>contenant l'attache ?}
+    E -->|oui| F[ajusteBody : rx, ry, cy<br/>+ dégradé]
+    E -->|non| G[Descendre l'aile de 10<br/>puis réduire l'échelle de 8 %]
+    G --> E
+    F --> H[ajusteTail : queue recalée<br/>sous le corps, 30 unités visibles min.]
+```
+
+Le corps garde son sommet sous la tête et ne grandit que vers le bas ; de la place est réservée pour la queue (`queueMin`).
+
+### Nom latin
+
+`genererNom()` combine : un **genre** dérivé du nom du fichier d'aile (empreinte FNV-1a → syllabes + suffixe), une **espèce** tirée de la palette (table de traduction et racines latines des codes ColorBrewer : `Yl` → *flavo*, `Rd` → *rubro*…), une **sous-espèce** décrivant l'allongement du corps et l'envergure, et un **code** hexadécimal (empreinte de toutes les dimensions).
+
+### Reproductibilité : graine
+
+Toutes les dimensions tirées au hasard (tête, corps, queue, antennes, choix d'aile par défaut) viennent d'un générateur `d3.randomLcg(graine)`, dans un ordre fixe. Les couleurs d'un dégradé sont tirées d'un générateur initialisé par `graine + id de la forme` : une forme garde ses couleurs quand on modifie les autres (nervures, ocelles), et un papillon regénéré depuis son URL est identique à l'octet près.
+
+### Proportions du corps et de la queue
+
+Après l'ajustement du corps aux ailes, `appliquerProportions()` multiplie largeur et longueur du corps (le haut reste sous la tête) puis de la queue (la partie visible sous le corps), dans la limite du cadre. `papillon.proportions({corpsL, corpsH, queueL, queueH})` les change en temps réel.
+
+### URL de partage
+
+La page lit `aile`, `palette`, `graine`, `corps` et `queue` dans l'URL au chargement (valeurs vérifiées : aile générée ou présente dans la liste, palette connue, facteurs entre 0,3 et 2,5), et réécrit l'URL (`history.replaceState`) à chaque papillon terminé ou modifié. **Partager** utilise `navigator.share` sur les écrans tactiles, sinon le presse-papiers.
+
+### API de la classe
+
+```js
+await chaoticumPapillonae.chargerModeles();          // lit modeles.json
+const papillon = new chaoticumPapillonae({
+    cont: d3.select("#div"),        // conteneur
+    idSvg: "monPapillon",
+    width: 1000, height: 1000,
+    modeleWing: "papillons_svg/papillon_05.svg",   // sinon tirage au hasard
+    scaleColors: d3.scaleSequential(d3.interpolateMagma), // false = RVB
+    nomPalette: "Magma",
+    graine: 777,                    // même graine → même papillon
+    proportions: {corpsL: 1.2, corpsH: 1, queueL: 1, queueH: 1.5},
+    onOcelles: liste => {},         // ocelles déplacés / supprimés (ailes générées)
+    onReady: p => console.log(p.nom)
+});
+papillon.changerAile("genere:42?ep=4");          // remplace les ailes, garde le reste
+papillon.proportions({corpsL: 0.8});             // redimensionne le corps
+```
+
+| Propriété statique | Contenu |
+|---|---|
+| `ailesDessinees` | Ailes dessinées livrées avec l'application |
+| `modelesWing` | Toutes les ailes utilisables |
+| `planches` | `[{prefixe, source, modeles}]` |
+| `images` | Fichier d'aile → PNG du papillon d'origine |
+| `symMin` | Symétrie minimale pour qu'une aile soit proposée (0,80) |
+
+## Ailes générées (modèle de nervation)
+
+`ailesGenerees.js` produit des ailes selon le plan de nervation des lépidoptères (système de Comstock-Needham) : une cellule discale fermée près de la base, des nervures radiales jusqu'au bord, et les membranes entre nervures voisines. Un modèle se note `genere:<graine>` ; tous les paramètres sont tirés d'un générateur pseudo-aléatoire initialisé par la graine (même graine → même aile).
+
+```mermaid
+flowchart TD
+    G[graine] --> H[Paramètres : nervures 5–11 et 4–9,<br/>cellule discale, apex, festons,<br/>queue 30 %, ocelles 60 %]
+    H --> C[Contours : splines de Catmull-Rom<br/>aile antérieure + aile postérieure]
+    H --> D[Cellule discale : quadrilatère près de la base]
+    C --> N[Nervure k : du bord externe de la cellule discale<br/>à la fraction k+½ / n du bord]
+    D --> N
+    N --> M[Membranes : 2 nervures voisines<br/>+ bord + cellule discale]
+    M --> R[Bords décalés vers l'intérieur<br/>bissectrices + lissage]
+    R --> S[SVG : contours, membranes, ocelles<br/>attache au corps à droite]
+    S --> P[chaoticumPapillonae : même traitement<br/>que les ailes extraites]
+```
+
+- Les nervures sont tracées dans l'ordre et chacune relie des positions croissantes sur la cellule discale et sur le bord : elles ne se croisent jamais.
+- L'aile postérieure est écrite avant l'aile antérieure, qui la recouvre.
+- Le SVG a le format des ailes extraites (`<path>` fermés et `<ellipse>`, `id` uniques) : placement dans le corps, dégradés et nom latin sont inchangés. `chaoticumPapillonae` construit le document avec `DOMParser` au lieu de `d3.xml`.
+- Dans la page, une aile sur quatre tirée au hasard est générée (`PART_GENEREES`), et la liste propose huit graines d'exemple (`GRAINES_EXEMPLES`).
+- **Réglages** : `AilesGenerees.REGLAGES` décrit les paramètres modifiables (`nf`, `nh`, `ep`, `dc`, `ap`, `sc`, `tl`, `oc`, `ot`). Un modèle réglé se note `genere:<graine>?ep=12&tl=1` : seuls les réglages qui s'écartent de la graine de plus d'un demi-pas sont notés (`AilesGenerees.modele(graine, valeurs)`), et `AilesGenerees.parametres(modele)` relit l'ensemble. Les ocelles occupent les `oc` premiers emplacements d'un ordre fixé par la graine : augmenter leur nombre en ajoute sans déplacer les autres.
+- **Ocelles placés à la main** : le paramètre `of=x,y,r;x,y,r` (coordonnées de l'aile, longueur 1) remplace les ocelles automatiques. Les `<ellipse class="ocelle">` portent leur position d'origine (`data-x`, `data-y`, `data-r`) ; `chaoticumPapillonae` les rend déplaçables (`d3.drag`, conversion du pointeur avec `getScreenCTM()`, miroir compris) et supprimables (double-clic), puis appelle `onOcelles([{x, y, r}])` ; la page en fait un nouveau modèle `of=…`.
+- **Temps réel** : `papillon.changerAile(modele)` remplace les ailes du papillon affiché. Le corps et la queue repartent de leurs dimensions d'avant l'ajustement aux ailes, puis sont réajustés ; les dégradés existants (identifiés par l'`id` des formes) sont réutilisés, donc les couleurs ne changent pas. Côté page, les curseurs sont limités à un rendu par image (`requestAnimationFrame`).
+
+## Extraction d'une planche
+
+```mermaid
+flowchart TD
+    A[Image : fichier ou URL] --> B[Couleur du papier :<br/>médiane Lab des 60 % les plus clairs]
+    B --> C[Encre = distance Lab au papier<br/>> max 25, 4 × médiane]
+    C --> D[Fermeture 9, ouverture 11<br/>supprime antennes et cadre]
+    D --> E[Remplissage des trous<br/>composantes connexes]
+    E --> F{Aire, allongement}
+    F -->|texte, petits éléments| X[ignorés]
+    F -->|papillon| G[Séparation des papillons collés<br/>noyaux + watershed]
+    G --> H[Ordre de lecture : rangées]
+    H --> I[Affinage du masque par papillon<br/>fermeture ∝ taille]
+    I --> J[PNG détouré + antennes]
+    I --> K[Axe de symétrie<br/>vertical ou horizontal, IoU miroir]
+    K -->|sym < 0,80| L[silhouette entière, axe = null]
+    K -->|sym ≥ 0,80| M[Aile gauche, attache à droite<br/>retrait du corps]
+    L --> N[Vectorisation]
+    M --> N
+    N --> O[Contour lissé → Bézier<br/>Catmull-Rom]
+    N --> P[Nervures → cellules<br/>→ chemins fermés ou ellipses]
+    O --> Q[SVG trait rouge, sans remplissage]
+    P --> Q
+    Q --> R[modeles.json mis à jour]
+```
+
+Points clés :
+
+- **Seuil adaptatif** : le grain du papier (médiane de la distance au papier) relève le seuil sur un papier irrégulier, et le laisse à 25 sur un papier lisse où les zones d'aile pâles sont proches du papier.
+- **Affinage par papillon** : une fermeture de taille *min(largeur, hauteur) / 20*, limitée au voisinage du papillon et sans empiéter sur ses voisins, bouche les entailles dues aux zones pâles.
+- **Symétrie** : IoU entre une moitié et le miroir de l'autre, pour tous les axes possibles entre 30 % et 70 % de la largeur (ou de la hauteur).
+- **Cellules** : l'intérieur de l'aile est découpé par ses **nervures**, pas par ses couleurs (voir ci-dessous) ; les cellules sont séparées par un espace (la nervure) et ne touchent pas le contour ; les petites cellules rondes (circularité > 0,8) deviennent des `<ellipse>`.
+
+### Détection des nervures
+
+Les gravures mêlent nervures (traits fins et longs), pointillé (points denses) et aplats colorés. Le traitement isole les premiers :
+
+```mermaid
+flowchart TD
+    A[Aile : luminance L du Lab] --> B[CLAHE<br/>contraste local renforcé]
+    B --> C[Flou gaussien σ ≈ taille/300<br/>fond le pointillé]
+    C --> D[Chapeau haut-de-forme noir<br/>détails plus sombres que le voisinage]
+    D --> E[Ouvertures par des segments<br/>18 orientations, longueur ≈ taille/14]
+    E --> F[Anisotropie = max − médiane des orientations<br/>une nervure répond dans une seule direction]
+    F --> G[Seuil : centile 85 dans l'aile<br/>morceaux trop courts écartés]
+    G --> H[Fermeture directionnelle<br/>recolle les morceaux alignés]
+    H --> I[Murs = nervures dilatées]
+    I --> J[Cellules = intérieur de l'aile − murs]
+    J --> K{au moins 4 cellules ?}
+    K -->|non| L[Relance plus sensible<br/>centiles 75 puis 65]
+    L --> G
+    K -->|oui| M[Contours lissés → Bézier]
+```
+
+Toutes les tailles de filtres sont proportionnelles à la taille de l'aile : une petite aile de la première planche (300 px) et une grande aile de Godart (1 100 px) sont traitées de la même façon. Les ailes dont les nervures ne sont presque pas gravées (papillons de nuit à grosses taches) gardent peu de cellules.
+
+### Manifeste `papillons_svg/modeles.json`
+
+```json
+{
+ "modeles": [
+  {
+   "fichier": "papillons_svg/godart53_02.svg",
+   "image": "papillons_extraits/godart53_02.png",
+   "axe": "v",
+   "sym": 0.906,
+   "prefixe": "godart53",
+   "source": "asset/img/sources/histoirenaturell01godart_0053_full.webp"
+  }
+ ]
+}
+```
+
+`axe` vaut `v` (corps vertical), `h` (corps horizontal, l'aile est tournée) ou `null` (pas de symétrie : non proposé comme modèle). Réextraire un préfixe remplace ses entrées.
+
+### Corrections d'orientation `papillons_svg/corrections.json`
+
+Pour un corps horizontal (`axe = h`), le script ne sait pas de quel côté est la tête : l'aile peut sortir à l'envers. Les ailes à retourner sont listées dans `corrections.json` (`{"papillon_17": {"retourner": true}}`) ; le retournement est un `transform="matrix(1 0 0 -1 0 h)"` sur le groupe de l'aile, réappliqué à chaque extraction, et le manifeste indique `"retourne": true`.
+
+```bash
+python3 extractPapillons.py --retourner papillon_17 papillon_28   # bascule
+```
+
+```mermaid
+erDiagram
+    PLANCHE ||--o{ PAPILLON : contient
+    PAPILLON ||--|| AILE_SVG : "fichier"
+    PAPILLON ||--|| IMAGE_PNG : "image"
+    PLANCHE {
+        string prefixe
+        string source
+    }
+    PAPILLON {
+        string axe
+        float sym
+    }
+```
+
+## Serveur et sécurité
+
+| Méthode | Chemin | Accès | Rôle |
+|---|---|---|---|
+| GET | fichiers publics | tous | `index.html`, pages à la racine, `asset/`, `papillons_svg/`, `papillons_extraits/`, `docs/` |
+| GET | `/api/moi` | tous | `{"utilisateur": nom \| null}` |
+| POST | `/api/connexion` | tous | `{"utilisateur", "mot_de_passe"}` → cookie de session |
+| POST | `/api/deconnexion` | tous | supprime la session |
+| POST | `/api/extraire?nom=…&prefixe=…` | connecté | corps = octets de l'image |
+| POST | `/api/extraire?url=…&prefixe=…` | connecté | image téléchargée par le serveur |
+| POST | `/api/retourner?fichier=…` | connecté | retourne une aile haut/bas (bascule), mémorisé dans `corrections.json` |
+
+```mermaid
+sequenceDiagram
+    actor U as Personne
+    participant P as Page
+    participant S as serveur.py
+    participant X as extractPapillons
+    U->>P: utilisateur + mot de passe
+    P->>S: POST /api/connexion
+    S->>S: PBKDF2-SHA256, limite d'essais par IP
+    S-->>P: Set-Cookie cp_session (HttpOnly, SameSite=Strict, Secure)
+    U->>P: fichier ou URL
+    P->>S: POST /api/extraire (cookie)
+    S->>S: session valide ? taille ≤ 60 Mo ? extension ?<br/>URL : adresse publique uniquement
+    S->>X: extraire(source, prefixe) (une extraction à la fois)
+    X-->>S: {prefixe, modeles}
+    S-->>P: résultat JSON
+    P->>P: chargerModeles() + nouvelle liste d'ailes
+```
+
+Mesures en place :
+
+- **Liste blanche des fichiers servis** : ni code Python, ni `data/`, ni `.git`, ni liste des dossiers.
+- **Mots de passe** hachés PBKDF2-SHA256 (240 000 itérations, sel aléatoire), comparaison à temps constant ; fichier des comptes en `0600`.
+- **Sessions** aléatoires (`secrets.token_urlsafe`), en mémoire, 12 h ; un redémarrage déconnecte tout le monde.
+- **Anti-force brute** : 10 échecs par IP en 15 minutes (`X-Forwarded-For` lu seulement si `CP_PROXY=1`).
+- **Import par URL** : seules les adresses publiques sont autorisées, redirections comprises (protection SSRF) ; taille limitée à 60 Mo.
+- **Conteneur** : utilisateur sans privilèges (`uid 1000`), seuls les dossiers d'import lui appartiennent ; le port 8765 n'est publié que sur `127.0.0.1`, l'accès public passe par Caddy (HTTPS, HSTS).
+
+## Déploiement Docker
+
+```mermaid
+flowchart LR
+    Internet -->|80/443| Caddy
+    Caddy -->|reverse_proxy app:8765| App[app<br/>python:3.12-slim<br/>serveur.py]
+    App --- V1[(comptes)]
+    App --- V2[(modeles)]
+    App --- V3[(extraits)]
+    App --- V4[(sources)]
+    Caddy --- V5[(caddy_data<br/>certificats)]
+```
+
+Variables d'environnement de `serveur.py` :
+
+| Variable | Défaut | Rôle |
+|---|---|---|
+| `CP_HOTE` | `127.0.0.1` (`0.0.0.0` dans l'image) | Adresse d'écoute |
+| `CP_PORT` | `8765` | Port |
+| `CP_DATA` | `data` | Dossier des comptes |
+| `CP_COOKIE_SECURE` | `0` (`1` via Compose) | Cookie limité à HTTPS |
+| `CP_PROXY` | `0` (`1` via Compose) | Lit l'IP cliente dans `X-Forwarded-For` |
+| `CP_ADMIN_USER` / `CP_ADMIN_PASSWORD` | — | Compte créé ou mis à jour au démarrage |
+
+## Documentation
+
+Les sources sont les fichiers Markdown de `docs/`. Les pages HTML sont générées par :
+
+```bash
+python3 docs/construire.py
+```
+
+Elles affichent le Markdown avec [marked](https://marked.js.org/) et les diagrammes avec [Mermaid](https://mermaid.js.org/), chargés depuis un CDN.
+</script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  const md = document.getElementById("md").textContent
+    .replace(/<\\\/script/gi, "</script");
+  const main = document.getElementById("contenu");
+  main.innerHTML = marked.parse(md);
+  // liens vers les autres documents : .md -> .html
+  main.querySelectorAll("a[href$='.md']").forEach(a => a.href = a.getAttribute("href").replace(/\.md$/, ".html"));
+  // blocs ```mermaid -> diagrammes
+  main.querySelectorAll("pre > code.language-mermaid").forEach(c => {
+    const pre = document.createElement("pre");
+    pre.className = "mermaid";
+    pre.textContent = c.textContent;
+    c.parentElement.replaceWith(pre);
+  });
+  const sombre = matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({ startOnLoad: false, theme: sombre ? "dark" : "default", securityLevel: "strict" });
+  mermaid.run();
+</script>
+</body>
+</html>

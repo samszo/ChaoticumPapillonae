@@ -1,0 +1,841 @@
+{
+ "modeles": [
+  {
+   "fichier": "papillons_svg/godart53_01.svg",
+   "image": "papillons_extraits/godart53_01.png",
+   "axe": "v",
+   "sym": 0.88,
+   "retourne": false,
+   "prefixe": "godart53",
+   "source": "asset/img/sources/histoirenaturell01godart_0053_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/godart53_02.svg",
+   "image": "papillons_extraits/godart53_02.png",
+   "axe": "v",
+   "sym": 0.907,
+   "retourne": false,
+   "prefixe": "godart53",
+   "source": "asset/img/sources/histoirenaturell01godart_0053_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0187_full_01.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0187_full_01.png",
+   "axe": "v",
+   "sym": 0.958,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0187_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0187_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0187_full_02.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0187_full_02.png",
+   "axe": null,
+   "sym": 0.784,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0187_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0187_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/papillon_01.svg",
+   "image": "papillons_extraits/papillon_01.png",
+   "axe": "v",
+   "sym": 0.956,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_02.svg",
+   "image": "papillons_extraits/papillon_02.png",
+   "axe": "h",
+   "sym": 0.883,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_03.svg",
+   "image": "papillons_extraits/papillon_03.png",
+   "axe": "v",
+   "sym": 0.947,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_04.svg",
+   "image": "papillons_extraits/papillon_04.png",
+   "axe": "h",
+   "sym": 0.945,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_05.svg",
+   "image": "papillons_extraits/papillon_05.png",
+   "axe": "v",
+   "sym": 0.947,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_06.svg",
+   "image": "papillons_extraits/papillon_06.png",
+   "axe": null,
+   "sym": 0.686,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_07.svg",
+   "image": "papillons_extraits/papillon_07.png",
+   "axe": "v",
+   "sym": 0.914,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_08.svg",
+   "image": "papillons_extraits/papillon_08.png",
+   "axe": null,
+   "sym": 0.632,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_09.svg",
+   "image": "papillons_extraits/papillon_09.png",
+   "axe": "v",
+   "sym": 0.937,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_10.svg",
+   "image": "papillons_extraits/papillon_10.png",
+   "axe": "h",
+   "sym": 0.911,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_11.svg",
+   "image": "papillons_extraits/papillon_11.png",
+   "axe": "v",
+   "sym": 0.932,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_12.svg",
+   "image": "papillons_extraits/papillon_12.png",
+   "axe": "v",
+   "sym": 0.928,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_13.svg",
+   "image": "papillons_extraits/papillon_13.png",
+   "axe": "v",
+   "sym": 0.944,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_14.svg",
+   "image": "papillons_extraits/papillon_14.png",
+   "axe": "v",
+   "sym": 0.934,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_15.svg",
+   "image": "papillons_extraits/papillon_15.png",
+   "axe": "v",
+   "sym": 0.947,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_16.svg",
+   "image": "papillons_extraits/papillon_16.png",
+   "axe": "v",
+   "sym": 0.928,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_17.svg",
+   "image": "papillons_extraits/papillon_17.png",
+   "axe": "h",
+   "sym": 0.923,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_18.svg",
+   "image": "papillons_extraits/papillon_18.png",
+   "axe": "v",
+   "sym": 0.929,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_19.svg",
+   "image": "papillons_extraits/papillon_19.png",
+   "axe": "h",
+   "sym": 0.916,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_20.svg",
+   "image": "papillons_extraits/papillon_20.png",
+   "axe": "v",
+   "sym": 0.88,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_21.svg",
+   "image": "papillons_extraits/papillon_21.png",
+   "axe": "v",
+   "sym": 0.888,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_22.svg",
+   "image": "papillons_extraits/papillon_22.png",
+   "axe": "v",
+   "sym": 0.926,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_23.svg",
+   "image": "papillons_extraits/papillon_23.png",
+   "axe": "v",
+   "sym": 0.894,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_24.svg",
+   "image": "papillons_extraits/papillon_24.png",
+   "axe": "v",
+   "sym": 0.95,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_25.svg",
+   "image": "papillons_extraits/papillon_25.png",
+   "axe": "v",
+   "sym": 0.865,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_26.svg",
+   "image": "papillons_extraits/papillon_26.png",
+   "axe": "v",
+   "sym": 0.901,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_27.svg",
+   "image": "papillons_extraits/papillon_27.png",
+   "axe": "v",
+   "sym": 0.928,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_28.svg",
+   "image": "papillons_extraits/papillon_28.png",
+   "axe": "h",
+   "sym": 0.94,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_29.svg",
+   "image": "papillons_extraits/papillon_29.png",
+   "axe": "v",
+   "sym": 0.923,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_30.svg",
+   "image": "papillons_extraits/papillon_30.png",
+   "axe": "v",
+   "sym": 0.962,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_31.svg",
+   "image": "papillons_extraits/papillon_31.png",
+   "axe": "v",
+   "sym": 0.926,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_32.svg",
+   "image": "papillons_extraits/papillon_32.png",
+   "axe": "h",
+   "sym": 0.942,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_33.svg",
+   "image": "papillons_extraits/papillon_33.png",
+   "axe": "v",
+   "sym": 0.924,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_34.svg",
+   "image": "papillons_extraits/papillon_34.png",
+   "axe": "v",
+   "sym": 0.924,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_35.svg",
+   "image": "papillons_extraits/papillon_35.png",
+   "axe": "h",
+   "sym": 0.933,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_36.svg",
+   "image": "papillons_extraits/papillon_36.png",
+   "axe": "h",
+   "sym": 0.948,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_37.svg",
+   "image": "papillons_extraits/papillon_37.png",
+   "axe": "h",
+   "sym": 0.955,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_38.svg",
+   "image": "papillons_extraits/papillon_38.png",
+   "axe": "v",
+   "sym": 0.846,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_39.svg",
+   "image": "papillons_extraits/papillon_39.png",
+   "axe": "v",
+   "sym": 0.949,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_40.svg",
+   "image": "papillons_extraits/papillon_40.png",
+   "axe": "v",
+   "sym": 0.945,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_41.svg",
+   "image": "papillons_extraits/papillon_41.png",
+   "axe": "v",
+   "sym": 0.945,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_42.svg",
+   "image": "papillons_extraits/papillon_42.png",
+   "axe": "h",
+   "sym": 0.896,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_43.svg",
+   "image": "papillons_extraits/papillon_43.png",
+   "axe": "v",
+   "sym": 0.904,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_44.svg",
+   "image": "papillons_extraits/papillon_44.png",
+   "axe": null,
+   "sym": 0.678,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_45.svg",
+   "image": "papillons_extraits/papillon_45.png",
+   "axe": "v",
+   "sym": 0.937,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_46.svg",
+   "image": "papillons_extraits/papillon_46.png",
+   "axe": "v",
+   "sym": 0.906,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_47.svg",
+   "image": "papillons_extraits/papillon_47.png",
+   "axe": "v",
+   "sym": 0.925,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_48.svg",
+   "image": "papillons_extraits/papillon_48.png",
+   "axe": "v",
+   "sym": 0.928,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_49.svg",
+   "image": "papillons_extraits/papillon_49.png",
+   "axe": "v",
+   "sym": 0.912,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_50.svg",
+   "image": "papillons_extraits/papillon_50.png",
+   "axe": "v",
+   "sym": 0.855,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_51.svg",
+   "image": "papillons_extraits/papillon_51.png",
+   "axe": "h",
+   "sym": 0.9,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_52.svg",
+   "image": "papillons_extraits/papillon_52.png",
+   "axe": "v",
+   "sym": 0.908,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_53.svg",
+   "image": "papillons_extraits/papillon_53.png",
+   "axe": "v",
+   "sym": 0.91,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_54.svg",
+   "image": "papillons_extraits/papillon_54.png",
+   "axe": null,
+   "sym": 0.596,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_55.svg",
+   "image": "papillons_extraits/papillon_55.png",
+   "axe": null,
+   "sym": 0.661,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_56.svg",
+   "image": "papillons_extraits/papillon_56.png",
+   "axe": "v",
+   "sym": 0.883,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_57.svg",
+   "image": "papillons_extraits/papillon_57.png",
+   "axe": "h",
+   "sym": 0.887,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_58.svg",
+   "image": "papillons_extraits/papillon_58.png",
+   "axe": "h",
+   "sym": 0.924,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_59.svg",
+   "image": "papillons_extraits/papillon_59.png",
+   "axe": "v",
+   "sym": 0.913,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_60.svg",
+   "image": "papillons_extraits/papillon_60.png",
+   "axe": "v",
+   "sym": 0.954,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_61.svg",
+   "image": "papillons_extraits/papillon_61.png",
+   "axe": "v",
+   "sym": 0.954,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_62.svg",
+   "image": "papillons_extraits/papillon_62.png",
+   "axe": "v",
+   "sym": 0.956,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_63.svg",
+   "image": "papillons_extraits/papillon_63.png",
+   "axe": "v",
+   "sym": 0.889,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_64.svg",
+   "image": "papillons_extraits/papillon_64.png",
+   "axe": "h",
+   "sym": 0.944,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_65.svg",
+   "image": "papillons_extraits/papillon_65.png",
+   "axe": null,
+   "sym": 0.697,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_66.svg",
+   "image": "papillons_extraits/papillon_66.png",
+   "axe": "v",
+   "sym": 0.933,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_67.svg",
+   "image": "papillons_extraits/papillon_67.png",
+   "axe": "v",
+   "sym": 0.936,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_68.svg",
+   "image": "papillons_extraits/papillon_68.png",
+   "axe": "v",
+   "sym": 0.861,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_69.svg",
+   "image": "papillons_extraits/papillon_69.png",
+   "axe": "v",
+   "sym": 0.931,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_70.svg",
+   "image": "papillons_extraits/papillon_70.png",
+   "axe": "h",
+   "sym": 0.83,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_71.svg",
+   "image": "papillons_extraits/papillon_71.png",
+   "axe": "h",
+   "sym": 0.959,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_72.svg",
+   "image": "papillons_extraits/papillon_72.png",
+   "axe": "h",
+   "sym": 0.96,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_73.svg",
+   "image": "papillons_extraits/papillon_73.png",
+   "axe": "h",
+   "sym": 0.87,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_74.svg",
+   "image": "papillons_extraits/papillon_74.png",
+   "axe": "h",
+   "sym": 0.878,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_75.svg",
+   "image": "papillons_extraits/papillon_75.png",
+   "axe": "v",
+   "sym": 0.879,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_76.svg",
+   "image": "papillons_extraits/papillon_76.png",
+   "axe": "v",
+   "sym": 0.821,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_77.svg",
+   "image": "papillons_extraits/papillon_77.png",
+   "axe": null,
+   "sym": 0.647,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_78.svg",
+   "image": "papillons_extraits/papillon_78.png",
+   "axe": "v",
+   "sym": 0.932,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_79.svg",
+   "image": "papillons_extraits/papillon_79.png",
+   "axe": null,
+   "sym": 0.725,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_80.svg",
+   "image": "papillons_extraits/papillon_80.png",
+   "axe": "h",
+   "sym": 0.918,
+   "retourne": true,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_81.svg",
+   "image": "papillons_extraits/papillon_81.png",
+   "axe": null,
+   "sym": 0.741,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_82.svg",
+   "image": "papillons_extraits/papillon_82.png",
+   "axe": "v",
+   "sym": 0.932,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_83.svg",
+   "image": "papillons_extraits/papillon_83.png",
+   "axe": "h",
+   "sym": 0.925,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/papillon_84.svg",
+   "image": "papillons_extraits/papillon_84.png",
+   "axe": null,
+   "sym": 0.595,
+   "retourne": false,
+   "prefixe": "papillon",
+   "source": "asset/img/btv1b6938165v_1.jpg"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0401_full_01.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0401_full_01.png",
+   "axe": "v",
+   "sym": 0.94,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0401_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0401_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0401_full_02.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0401_full_02.png",
+   "axe": "v",
+   "sym": 0.92,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0401_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0401_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0401_full_03.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0401_full_03.png",
+   "axe": "v",
+   "sym": 0.915,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0401_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0401_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0401_full_04.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0401_full_04.png",
+   "axe": "v",
+   "sym": 0.924,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0401_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0401_full.webp"
+  },
+  {
+   "fichier": "papillons_svg/histoirenaturell04goda_0401_full_05.svg",
+   "image": "papillons_extraits/histoirenaturell04goda_0401_full_05.png",
+   "axe": "v",
+   "sym": 0.897,
+   "retourne": false,
+   "prefixe": "histoirenaturell04goda_0401_full",
+   "source": "asset/img/sources/histoirenaturell04goda_0401_full.webp"
+  }
+ ]
+}

@@ -10,6 +10,7 @@
     <script src="asset/js/rgbcolor.js"></script>
     <script src="asset/js/canvg.js"></script>
     <script src="asset/js/svgenie.js"></script>
+    <script src="asset/js/ailesGenerees.js"></script>
     <script src="asset/js/chaoticumPapillonae.js"></script>
     <style>
         .divPapi {
@@ -29,7 +30,7 @@
         #options {
             position: fixed;
             top: 10px;
-            left: 10px;
+            right: 10px;
             z-index: 1000000;
             width: 260px;
             padding: 12px;
@@ -38,6 +39,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
             font: 14px sans-serif;
         }
+        #nomPapi { font: italic 18px Georgia, serif; text-align: center; margin-bottom: 8px; min-height: 1.2em; }
         #options label { display: block; margin: 10px 0 4px; font-weight: bold; }
         #options button.action { width: 100%; padding: 8px; margin-top: 6px; cursor: pointer; }
         .choix { position: relative; }
@@ -57,21 +59,106 @@
         .choix-item:hover, .choix-item.actif { background: #e8eefc; }
         .apercu-aile { width: 40px; height: 48px; object-fit: contain; flex: none; }
         .choix-btn .apercu-aile { width: 20px; height: 20px; }
+        .apercu-papillon { width: 56px; height: 48px; object-fit: contain; flex: none; }
+        .choix-btn .apercu-papillon { width: 28px; height: 20px; }
+        /* modèle d'aile du papillon affiché et papillon dont il provient */
+        #modeleUtilise { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; }
+        #modeleUtilise img { height: 70px; max-width: 110px; object-fit: contain; }
+        #modeleUtilise .aile { background: #fff; border: 1px solid #ddd; border-radius: 4px; }
+        #btnRetourner { align-self: center; font-size: 18px; padding: 2px 8px; cursor: pointer; }
+        #modeleUtilise figure { margin: 0; text-align: center; font-size: 11px; color: #666; }
+        /* import de planche */
+        #import { margin-top: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
+        #import summary { cursor: pointer; font-weight: bold; }
+        #enregistrer { display: flex; gap: 6px; margin-bottom: 4px; }
+        #enregistrer button { min-width: 0;
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 6px; cursor: pointer; font: inherit;
+        }
+        #enregistrer img { width: 20px; height: 20px; }
+        #partage { margin: 4px 0; }
+        #partage input { width: 100%; box-sizing: border-box; font-size: 12px; }
+        #partageStatut, #aideOcelles { font-size: 12px; color: #666; margin-top: 4px; }
+        #corpsQueue { margin-top: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
+        #corpsQueue summary { cursor: pointer; font-weight: bold; }
+        #reglages { margin-top: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
+        #reglages summary { cursor: pointer; font-weight: bold; }
+        #reglagesGraine { font-size: 12px; color: #666; margin: 4px 0; }
+        #options .reglage { font-weight: normal; margin: 6px 0 0; display: grid; grid-template-columns: 1fr 42px; align-items: center; column-gap: 6px; font-size: 12px; margin-top: 2px; }
+        .reglage input { grid-column: 1 / 3; width: 100%; margin: 0; }
+        .reglage output { text-align: right; font-variant-numeric: tabular-nums; }
+        .reglages-actions { display: flex; gap: 6px; margin-top: 6px; }
+        .reglages-actions button { flex: 1; padding: 4px; cursor: pointer; font: inherit; font-size: 12px; }
+        #options { max-height: calc(100vh - 20px); overflow-y: auto; box-sizing: border-box; }
+        #lienDoc { display: block; margin-top: 10px; font-size: 13px; text-align: center; color: #36c; }
+        #connecte { font-size: 13px; margin-top: 6px; }
+        #connecte a { cursor: pointer; color: #36c; }
+        #import input[type=text], #import input[type=url], #import input[type=password] { width: 100%; box-sizing: border-box; margin-top: 4px; }
+        #import input[type=file] { width: 100%; margin-top: 6px; }
+        #importStatut { margin-top: 6px; font-size: 13px; }
+        #importStatut.erreur { color: #b00; }
         .apercu-palette { width: 90px; height: 16px; border-radius: 3px; flex: none; }
         .choix-groupe { padding: 6px 6px 2px; font-size: 12px; color: #666; font-weight: bold; }
     </style>
 </head>
 
 <body>
-    <img src="asset/svg/file-export-solid.svg" alt="sauver" style="z-index: 1000000;position: absolute; top: 10px; right: 10px; width: 50px; height: 50px; cursor: pointer;" onclick="savePapi()" title="Sauvegarder le papillon en SVG" />
-    <img src="asset/img/take-photo.png" alt="sauver" style="z-index: 1000000;position: absolute; top: 10px; right: 70px; width: 50px; height: 50px; cursor: pointer;" onclick="takePhoto()" title="Sauvegarder le papillon en PNG" />
     <div id="options">
+        <div id="nomPapi"></div>
+        <div id="modeleUtilise"></div>
+        <div id="enregistrer">
+            <button onclick="takePhoto()" title="Sauvegarder le papillon en PNG">
+                <img src="asset/img/take-photo.png" alt="">PNG</button>
+            <button onclick="savePapi()" title="Sauvegarder le papillon en SVG">
+                <img src="asset/svg/file-export-solid.svg" alt="">SVG</button>
+            <button onclick="partager()" title="Copier le lien qui regénère ce papillon">🔗 Partager</button>
+        </div>
+        <div id="partage" hidden>
+            <input type="text" id="lienPartage" readonly aria-label="Lien de partage">
+            <div id="partageStatut"></div>
+        </div>
         <button class="action" onclick="genererAleatoire()">🎲 Papillon complètement aléatoire</button>
         <label>Forme des ailes</label>
         <div class="choix" id="choixAile"></div>
         <label>Palette de couleurs</label>
         <div class="choix" id="choixPalette"></div>
         <button class="action" onclick="generer()">Générer avec ces choix</button>
+        <details id="reglages" open hidden>
+            <summary>Régler l'aile générée</summary>
+            <div id="reglagesGraine"></div>
+            <div id="reglagesCurseurs"></div>
+            <div id="aideOcelles">Glisser un ocelle sur le papillon pour le déplacer, double-cliquer pour le supprimer.</div>
+            <div class="reglages-actions">
+                <button onclick="nouvelleGraine()" title="Autre aile générée, réglages par défaut">🎲 Autre graine</button>
+                <button onclick="ocellesAutomatiques()" title="Revenir aux ocelles placés automatiquement">◎ Ocelles auto</button>
+                <button onclick="reinitialiserReglages()" title="Revenir aux réglages de la graine">↺ Réinitialiser</button>
+            </div>
+        </details>
+        <details id="corpsQueue">
+            <summary>Corps et queue</summary>
+            <div id="curseursCorps"></div>
+            <div class="reglages-actions">
+                <button onclick="reinitialiserProportions()">↺ Tailles calculées</button>
+            </div>
+        </details>
+        <details id="import">
+            <summary>Importer une planche</summary>
+            <!-- l'import est réservé aux personnes connectées -->
+            <form id="connexion" onsubmit="seConnecter(event)">
+                <input type="text" id="cnxUtilisateur" placeholder="utilisateur" autocomplete="username" required>
+                <input type="password" id="cnxMotDePasse" placeholder="mot de passe" autocomplete="current-password" required>
+                <button class="action" type="submit">Se connecter</button>
+            </form>
+            <div id="formImport" hidden>
+                <div id="connecte"></div>
+                <input type="file" id="importFichier" accept="image/*">
+                <input type="url" id="importUrl" placeholder="… ou URL de l'image">
+                <input type="text" id="importPrefixe" placeholder="préfixe des fichiers (optionnel)">
+                <button class="action" id="importBtn" onclick="importerPlanche()">Extraire les ailes</button>
+            </div>
+            <div id="importStatut"></div>
+        </details>
+        <a id="lienDoc" href="docs/index.html" target="_blank">📖 Documentation</a>
     </div>
     <div id="mainPapi"></div>
 
@@ -112,8 +199,16 @@
             return "linear-gradient(90deg," + scheme.map((c, i) => c + " " + (i * w) + "%," + c + " " + ((i + 1) * w) + "%").join(",") + ")";
         }
         const nomsPalettes = ["RVB", ...Object.values(palettes).flat()].filter(n => n == "RVB" || d3["interpolate" + n] || d3["scheme" + n]);
-        const modelesWing = chaoticumPapillonae.modelesWing;
-        const nomAile = url => url.split("/").pop().replace(".svg", "");
+        let modelesWing = chaoticumPapillonae.modelesWing, choixAile;
+        //ailes générées par le modèle de nervation (ailesGenerees.js)
+        const NOUVELLE_AILE = "genere:nouvelle",
+            GRAINES_EXEMPLES = [42, 7, 123, 999, 2024, 31337, 1789, 8128],
+            PART_GENEREES = 0.25;   //part des ailes générées dans un tirage aléatoire
+        const nomAile = url => url == NOUVELLE_AILE ? "Nouvelle aile générée"
+            : AilesGenerees.estGeneree(url) ? AilesGenerees.nom(url)
+            : url.split("/").pop().replace(".svg", "");
+        //image d'aperçu d'un modèle d'aile
+        const apercuAile = url => AilesGenerees.estGeneree(url) ? AilesGenerees.url(url) : url;
 
         //liste déroulante avec aperçu
         function creerChoix(id, groupes, apercu, defaut) {
@@ -142,11 +237,23 @@
             afficher(valeur);
             return { valeur: () => valeur, set: v => { valeur = v; afficher(v); } };
         }
-        const choixAile = creerChoix("choixAile",
-            { "Ailes dessinées": modelesWing.filter(m => m.startsWith("asset/")),
-              "Ailes extraites de la planche": modelesWing.filter(m => !m.startsWith("asset/")) },
-            (el, v) => el.append("img").attr("class", "apercu-aile").attr("src", v).attr("loading", "lazy"),
-            "aleatoire");
+        //un groupe par planche source (cf. extractPapillons.py et papillons_svg/modeles.json)
+        function creerChoixAile() {
+            let groupes = {
+                "Ailes générées": [NOUVELLE_AILE, ...GRAINES_EXEMPLES.map(g => AilesGenerees.PREFIXE + g)],
+                "Ailes dessinées": chaoticumPapillonae.ailesDessinees
+            };
+            chaoticumPapillonae.planches.forEach(p => {
+                let source = decodeURIComponent(p.source.split("/").pop());
+                groupes["Planche " + p.prefixe + (source.startsWith(p.prefixe) ? "" : " (" + source + ")")] = p.modeles;
+            });
+            return creerChoix("choixAile", groupes, (el, v) => {
+                if (v == NOUVELLE_AILE) return;
+                el.append("img").attr("class", "apercu-aile").attr("src", apercuAile(v)).attr("loading", "lazy");
+                let img = chaoticumPapillonae.images[v];
+                if (img) el.append("img").attr("class", "apercu-papillon").attr("src", img).attr("loading", "lazy");
+            }, "aleatoire");
+        }
         let groupesPalettes = { "Couleurs au hasard": ["RVB"] };
         Object.entries(palettes).forEach(([g, noms]) => groupesPalettes[g] = noms.filter(n => nomsPalettes.includes(n)));
         const choixPalette = creerChoix("choixPalette", groupesPalettes,
@@ -154,8 +261,11 @@
             "Rainbow");
 
         let papi;
-        function creerPapillon(modeleWing, palette) {
+        function creerPapillon(modeleWing, palette, graine) {
             contSvg.html("");
+            d3.select("#nomPapi").text("");
+            afficherModele(modeleWing);
+            afficherReglages(modeleWing);
             papi = new chaoticumPapillonae({
                 'cont': contSvg,
                 'idSvg': params.idSvg,
@@ -163,20 +273,304 @@
                 'height': 1000,
                 'width': 1000,
                 'modeleWing': modeleWing,
-                'scaleColors': getScaleColors(palette)
+                'scaleColors': getScaleColors(palette),
+                'nomPalette': palette,
+                'graine': graine,
+                'proportions': { ...proportions },
+                'onOcelles': modifierOcelles,
+                //ignore un papillon remplacé avant la fin de son chargement
+                'onReady': p => {
+                    if (p !== papi) return;
+                    d3.select("#nomPapi").text(p.nom);
+                    majUrl();
+                }
             });
         }
-        function generer() {
+
+        //-- corps et queue : facteurs de taille appliqués en temps réel ------------------
+        const PROPORTIONS = [
+            { cle: "corpsL", nom: "Largeur du corps" }, { cle: "corpsH", nom: "Longueur du corps" },
+            { cle: "queueL", nom: "Largeur de la queue" }, { cle: "queueH", nom: "Longueur de la queue" }];
+        let proportions = { corpsL: 1, corpsH: 1, queueL: 1, queueH: 1 };
+        function afficherProportions() {
+            let l = d3.select("#curseursCorps").selectAll(".reglage").data(PROPORTIONS, r => r.cle)
+                .join(enter => {
+                    let e = enter.append("label").attr("class", "reglage");
+                    e.append("span").text(r => r.nom);
+                    e.append("output");
+                    e.append("input").attr("type", "range").attr("min", 0.3).attr("max", 2.5).attr("step", 0.05)
+                        .on("input", function (ev, r) {
+                            proportions[r.cle] = +this.value;
+                            d3.select(this.parentNode).select("output").text("× " + (+this.value).toFixed(2));
+                            if (papi) papi.proportions(proportions);
+                        });
+                    return e;
+                });
+            l.select("input").property("value", r => proportions[r.cle]);
+            l.select("output").text(r => "× " + proportions[r.cle].toFixed(2));
+        }
+        function reinitialiserProportions() {
+            proportions = { corpsL: 1, corpsH: 1, queueL: 1, queueH: 1 };
+            afficherProportions();
+            if (papi) papi.proportions(proportions);
+        }
+        afficherProportions();
+
+        //-- ocelles déplacés ou supprimés sur le papillon --------------------------------
+        let ocellesManuels = null;
+        function modifierOcelles(liste) {
+            ocellesManuels = liste;
+            appliquerReglages();
+        }
+        function ocellesAutomatiques() {
+            ocellesManuels = null;
+            appliquerReglages();
+        }
+
+        //-- partage : l'URL contient tout ce qu'il faut pour regénérer le papillon -------
+        function urlPapillon() {
+            let q = new URLSearchParams();
+            q.set("aile", papi.modeleWing);
+            q.set("palette", papi.nomPalette);
+            q.set("graine", papi.graine);
+            if (proportions.corpsL != 1 || proportions.corpsH != 1) q.set("corps", proportions.corpsL + "," + proportions.corpsH);
+            if (proportions.queueL != 1 || proportions.queueH != 1) q.set("queue", proportions.queueL + "," + proportions.queueH);
+            return location.origin + location.pathname + "?" + q.toString();
+        }
+        //la barre d'adresse suit le papillon affiché
+        function majUrl() {
+            if (papi) history.replaceState(null, "", urlPapillon());
+        }
+        async function partager() {
+            if (!papi) return;
+            let url = urlPapillon(), statut = d3.select("#partageStatut");
+            d3.select("#partage").attr("hidden", null);
+            d3.select("#lienPartage").property("value", url).node().select();
+            try {
+                if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+                    await navigator.share({ title: papi.nom, url });
+                    statut.text("Lien partagé.");
+                } else {
+                    await navigator.clipboard.writeText(url);
+                    statut.text("Lien copié : il regénère ce papillon.");
+                }
+            } catch (e) {
+                statut.text("Copier le lien ci-dessus (Ctrl+C / Cmd+C).");
+            }
+        }
+        //paramètres de génération lus dans l'URL : aile, palette, graine, corps, queue
+        function lireUrl() {
+            let q = new URLSearchParams(location.search), r = {};
+            let aile = q.get("aile");
+            if (aile && (AilesGenerees.estGeneree(aile) || modelesWing.includes(aile))) r.aile = aile;
+            if (nomsPalettes.includes(q.get("palette"))) r.palette = q.get("palette");
+            if (/^\d+$/.test(q.get("graine") || "")) r.graine = +q.get("graine");
+            [["corps", "corpsL", "corpsH"], ["queue", "queueL", "queueH"]].forEach(([k, l, h]) => {
+                let v = (q.get(k) || "").split(",").map(Number);
+                if (v.length == 2 && v.every(x => isFinite(x) && x >= 0.3 && x <= 2.5)) {
+                    proportions[l] = v[0];
+                    proportions[h] = v[1];
+                }
+            });
+            return r;
+        }
+        //outil de réglage en temps réel d'une aile générée : chaque curseur remplace
+        //les ailes du papillon affiché (tête, corps et couleurs sont conservés)
+        let reglagesGraine = null, rafReglage = null;
+        function afficherReglages(modele) {
+            let generee = AilesGenerees.estGeneree(modele);
+            d3.select("#reglages").attr("hidden", generee ? null : true);
+            if (!generee) return;
+            let o = AilesGenerees.parametres(modele);
+            reglagesGraine = o.graine;
+            ocellesManuels = o.of ? o.of.map(t => ({ x: t.c.x, y: t.c.y, r: t.r })) : null;
+            d3.select("#reglagesGraine").text("Graine n° " + o.graine);
+            let lignes = d3.select("#reglagesCurseurs").selectAll(".reglage")
+                .data(AilesGenerees.REGLAGES, r => r.cle)
+                .join(enter => {
+                    let l = enter.append("label").attr("class", "reglage");
+                    l.append("span").text(r => r.nom);
+                    l.append("output");
+                    l.append("input").attr("type", "range")
+                        .attr("min", r => r.min).attr("max", r => r.max).attr("step", r => r.pas)
+                        .on("input", function (ev, r) {
+                            //changer le nombre d'ocelles revient aux ocelles automatiques
+                            if (r.cle == "oc") ocellesManuels = null;
+                            appliquerReglages();
+                        });
+                    return l;
+                });
+            lignes.select("input").property("value", r => o[r.cle]);
+            lignes.select("output").text(r => formater(r, o[r.cle]));
+        }
+        const formater = (r, v) => r.pas < 1 ? (+v).toFixed(2) : String(Math.round(v));
+        function valeursReglages() {
+            let v = {};
+            d3.selectAll("#reglagesCurseurs .reglage").each(function (r) {
+                let x = +d3.select(this).select("input").property("value");
+                v[r.cle] = x;
+                d3.select(this).select("output").text(formater(r, x));
+            });
+            return v;
+        }
+        function appliquerReglages() {
+            let modele = AilesGenerees.modele(reglagesGraine, valeursReglages(), ocellesManuels);
+            //un seul rendu par image affichée, même si le curseur bouge vite
+            cancelAnimationFrame(rafReglage);
+            rafReglage = requestAnimationFrame(() => {
+                if (!papi) return;
+                papi.changerAile(modele);
+                choixAile.set(modele);
+                afficherModele(modele);
+            });
+        }
+        function nouvelleGraine() {
+            let modele = AilesGenerees.nouvelle();
+            afficherReglages(modele);
+            appliquerReglages();
+        }
+        function reinitialiserReglages() {
+            afficherReglages(AilesGenerees.PREFIXE + reglagesGraine);
+            appliquerReglages();
+        }
+
+        //affiche la forme d'aile utilisée et le papillon de la planche dont elle provient
+        function afficherModele(modeleWing) {
+            let div = d3.select("#modeleUtilise").html(""),
+                f = div.append("figure");
+            f.append("img").attr("class", "aile").attr("src", apercuAile(modeleWing)).attr("title", nomAile(modeleWing));
+            f.append("figcaption").text(nomAile(modeleWing));
+            let img = chaoticumPapillonae.images[modeleWing];
+            if (img) {
+                f = div.append("figure");
+                f.append("img").attr("src", img).attr("title", "Papillon d'origine");
+                f.append("figcaption").text("papillon d'origine");
+                //correction de l'orientation, réservée aux personnes connectées
+                div.append("button").attr("id", "btnRetourner").attr("title", "Retourner l'aile (haut/bas)")
+                    .attr("hidden", utilisateurConnecte ? null : true)
+                    .text("↕").on("click", () => retournerAile(modeleWing));
+            }
+        }
+
+        //retourne haut/bas une aile mal orientée, puis régénère le papillon avec cette aile
+        async function retournerAile(modeleWing) {
+            let statut = d3.select("#importStatut").classed("erreur", false).text("");
+            try {
+                let rep = await fetch("api/retourner?fichier=" + encodeURIComponent(modeleWing), { method: "POST" }),
+                    res = await rep.json();
+                if (rep.status == 401) afficherConnexion(null);
+                if (!rep.ok) throw new Error(res.erreur);
+                //les aperçus de cette aile sont rechargés (contournement du cache des images)
+                let v = modeleWing + "?v=" + Date.now();
+                d3.selectAll("img").filter(function () { return this.getAttribute("src").split("?")[0] == modeleWing; })
+                    .attr("src", v);
+                creerPapillon(modeleWing, papi ? papi.nomPalette : "Rainbow");
+            } catch (err) {
+                d3.select("#import").property("open", true);
+                statut.classed("erreur", true).text("Retournement impossible : " + err.message);
+            }
+        }
+
+        //envoie une planche au serveur local (serveur.py) qui en extrait les ailes
+        async function importerPlanche() {
+            let fichier = document.getElementById("importFichier").files[0],
+                url = document.getElementById("importUrl").value.trim(),
+                prefixe = document.getElementById("importPrefixe").value.trim(),
+                statut = d3.select("#importStatut").classed("erreur", false),
+                btn = d3.select("#importBtn");
+            if (!fichier && !url) { statut.classed("erreur", true).text("Choisir un fichier ou donner une URL."); return; }
+            let q = new URLSearchParams();
+            if (prefixe) q.set("prefixe", prefixe);
+            let options = { method: "POST" };
+            if (fichier) { q.set("nom", fichier.name); options.body = fichier; }
+            else q.set("url", url);
+            btn.property("disabled", true);
+            statut.text("Extraction en cours… (jusqu'à une minute pour une grande planche)");
+            try {
+                let rep = await fetch("api/extraire?" + q, options), res;
+                try { res = await rep.json(); }
+                catch (e) { throw new Error("le serveur ne gère pas l'import : lancer « python3 serveur.py »"); }
+                if (rep.status == 401) afficherConnexion(null);
+                if (!rep.ok) throw new Error(res.erreur || rep.statusText);
+                await chaoticumPapillonae.chargerModeles();
+                modelesWing = chaoticumPapillonae.modelesWing;
+                d3.select("#choixAile").html("");
+                choixAile = creerChoixAile();
+                let nouvelles = res.modeles.map(m => m.fichier).filter(f => modelesWing.includes(f));
+                statut.text(res.modeles.length + " papillon(s) trouvé(s), " + nouvelles.length
+                    + " aile(s) ajoutée(s) dans « Planche " + res.prefixe + " ».");
+                if (nouvelles.length) { choixAile.set(nouvelles[0]); generer(); }
+            } catch (e) {
+                statut.classed("erreur", true).text("Erreur : " + e.message);
+            } finally {
+                btn.property("disabled", false);
+            }
+        }
+
+        //connexion : le formulaire d'import n'est montré qu'aux personnes connectées
+        let utilisateurConnecte = null;
+        function afficherConnexion(utilisateur) {
+            utilisateurConnecte = utilisateur;
+            d3.select("#btnRetourner").attr("hidden", utilisateur ? null : true);
+            d3.select("#connexion").attr("hidden", utilisateur ? true : null);
+            d3.select("#formImport").attr("hidden", utilisateur ? null : true);
+            d3.select("#connecte").html("").text("Connecté·e : " + (utilisateur || "") + " — ")
+                .append("a").text("se déconnecter").on("click", seDeconnecter);
+        }
+        async function seConnecter(e) {
+            e.preventDefault();
+            let statut = d3.select("#importStatut").classed("erreur", false).text("");
+            try {
+                let rep = await fetch("api/connexion", {
+                    method: "POST", headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        utilisateur: document.getElementById("cnxUtilisateur").value,
+                        mot_de_passe: document.getElementById("cnxMotDePasse").value
+                    })
+                }), res = await rep.json();
+                if (!rep.ok) throw new Error(res.erreur);
+                document.getElementById("cnxMotDePasse").value = "";
+                afficherConnexion(res.utilisateur);
+            } catch (err) {
+                statut.classed("erreur", true).text("Connexion impossible : " + err.message);
+            }
+        }
+        async function seDeconnecter() {
+            await fetch("api/deconnexion", { method: "POST" });
+            afficherConnexion(null);
+        }
+        //état de la connexion au chargement (sans serveur.py, l'import est masqué)
+        fetch("api/moi").then(r => r.json()).then(r => afficherConnexion(r.utilisateur))
+            .catch(() => d3.select("#import").attr("hidden", true));
+
+        //nom du papillon utilisable comme nom de fichier
+        function nomFichier(ext) {
+            let nom = papi && papi.nom ? papi.nom : "papillon";
+            return nom.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9-]+/g, "_") + "." + ext;
+        }
+        function generer(graine) {
             let aile = choixAile.valeur(), palette = choixPalette.valeur();
-            creerPapillon(aile == "aleatoire" ? d3.shuffle(modelesWing.slice())[0] : aile,
-                palette == "aleatoire" ? d3.shuffle(nomsPalettes.slice())[0] : palette);
+            if (aile == "aleatoire")
+                aile = Math.random() < PART_GENEREES ? NOUVELLE_AILE : d3.shuffle(modelesWing.slice())[0];
+            //une nouvelle aile générée reçoit sa propre graine (elle s'affiche et nomme le papillon)
+            if (aile == NOUVELLE_AILE) aile = AilesGenerees.nouvelle();
+            creerPapillon(aile, palette == "aleatoire" ? d3.shuffle(nomsPalettes.slice())[0] : palette, graine);
         }
         function genererAleatoire() {
             choixAile.set("aleatoire");
             choixPalette.set("aleatoire");
             generer();
         }
-        generer();
+        //charge les modèles d'aile extraits des planches avant le premier papillon
+        chaoticumPapillonae.chargerModeles().then(liste => {
+            modelesWing = liste;
+            choixAile = creerChoixAile();
+            let u = lireUrl();
+            afficherProportions();
+            if (u.aile) choixAile.set(u.aile);
+            if (u.palette) choixPalette.set(u.palette);
+            generer(u.graine);
+        });
         function savePapi() {
             let svg = d3.select("#div" + params.idSvg).select("svg");
             if (svg.empty()) {
@@ -188,13 +582,13 @@
             let url = URL.createObjectURL(blob);
             let a = document.createElement('a');
             a.href = url;
-            a.download = 'papillon.svg';
+            a.download = nomFichier('svg');
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
         function takePhoto() {
-            svgenie.save(document.getElementById(params.idSvg),{ name:"papi.png" }); 
+            svgenie.save(document.getElementById(params.idSvg),{ name:nomFichier("png") }); 
         }
         function extractUrlParams() {
             var t = location.search.substring(1).split('&');

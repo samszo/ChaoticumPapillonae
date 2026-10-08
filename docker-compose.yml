@@ -1,0 +1,42 @@
+# Mise en ligne : docker compose up -d   (variables dans .env, cf. .env.example)
+services:
+  app:
+    build: .
+    image: chaoticum-papillonae
+    restart: unless-stopped
+    environment:
+      CP_PROXY: "1"                                   # derrière Caddy
+      CP_COOKIE_SECURE: "${CP_COOKIE_SECURE:-1}"      # cookie HTTPS uniquement
+      CP_ADMIN_USER: "${CP_ADMIN_USER:-}"             # compte créé au démarrage (optionnel)
+      CP_ADMIN_PASSWORD: "${CP_ADMIN_PASSWORD:-}"
+    volumes:
+      # données conservées entre les mises à jour de l'image
+      - comptes:/app/data
+      - modeles:/app/papillons_svg
+      - extraits:/app/papillons_extraits
+      - sources:/app/asset/img/sources
+    ports:
+      - "127.0.0.1:8765:8765"                         # accès local seulement (tests, ssh)
+
+  caddy:
+    image: caddy:2.8.4
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      DOMAINE: "${DOMAINE:?définir DOMAINE dans .env}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  comptes:
+  modeles:
+  extraits:
+  sources:
+  caddy_data:
+  caddy_config:
