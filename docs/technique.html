@@ -61,6 +61,7 @@ flowchart LR
 | `index.html` | Interface : panneau d'options, listes avec aperçus, import, export PNG/SVG |
 | `asset/js/chaoticumPapillonae.js` | Classe qui construit le papillon SVG avec D3 v7 |
 | `asset/js/ailesGenerees.js` | Modèle de nervation : génère des ailes (`genere:<graine>`) |
+| `asset/js/papillonAnatomique.js` | Méthode anatomique : papillon entier construit d'après les schémas de Wikimédia Commons |
 | `extractPapillons.py` | Détection des papillons d'une planche et vectorisation d'une aile |
 | `serveur.py` | Serveur HTTP : fichiers publics, comptes, sessions, API d'import |
 | `papillons_svg/modeles.json` | Manifeste des ailes extraites |
@@ -120,6 +121,12 @@ Le corps garde son sommet sous la tête et ne grandit que vers le bas ; de la pl
 ### Reproductibilité : graine
 
 Toutes les dimensions tirées au hasard (tête, corps, queue, antennes, choix d'aile par défaut) viennent d'un générateur `d3.randomLcg(graine)`, dans un ordre fixe. Les couleurs d'un dégradé sont tirées d'un générateur initialisé par `graine + id de la forme` : une forme garde ses couleurs quand on modifie les autres (nervures, ocelles), et un papillon regénéré depuis son URL est identique à l'octet près.
+
+### Modes de dégradé
+
+`chaoticumPapillonae.MODES_DEGRADE` liste les modes (`radial`, `lineaire`, `rayures`, `anneaux`, `mixte`) ; les deux classes reçoivent `modeDegrade`. `chaoticumPapillonae.ajouterDegrade(defs, id, mode, cx, cy, r, graine)` crée la géométrie du dégradé (sans ses couleurs) : `radialGradient` centré, ou `linearGradient` de diamètre 2r selon un angle tiré de la graine et de l'`id` ; en `mixte`, le mode de chaque élément est tiré de la même façon. Les couleurs sont ajoutées ensuite comme avant (le mode radial redonne exactement les papillons existants), puis `finaliserDegrade` répète les arrêts de couleur : 6 fois pour les rayures, 3 fois en miroir pour les anneaux. Cette répétition explicite remplace `spreadMethod`, ignoré par l'export PNG (canvg).
+
+Écailles : la valeur de palette d'une écaille mêle à parts égales la valeur de sa zone et un champ selon le mode — projection sur une direction (linéaire), sinusoïde de cette projection (rayures) ou de la distance à la base (anneaux).
 
 ### Proportions du corps et de la queue
 
@@ -181,6 +188,39 @@ flowchart TD
 - **Réglages** : `AilesGenerees.REGLAGES` décrit les paramètres modifiables (`nf`, `nh`, `ep`, `dc`, `ap`, `sc`, `tl`, `oc`, `ot`). Un modèle réglé se note `genere:<graine>?ep=12&tl=1` : seuls les réglages qui s'écartent de la graine de plus d'un demi-pas sont notés (`AilesGenerees.modele(graine, valeurs)`), et `AilesGenerees.parametres(modele)` relit l'ensemble. Les ocelles occupent les `oc` premiers emplacements d'un ordre fixé par la graine : augmenter leur nombre en ajoute sans déplacer les autres.
 - **Ocelles placés à la main** : le paramètre `of=x,y,r;x,y,r` (coordonnées de l'aile, longueur 1) remplace les ocelles automatiques. Les `<ellipse class="ocelle">` portent leur position d'origine (`data-x`, `data-y`, `data-r`) ; `chaoticumPapillonae` les rend déplaçables (`d3.drag`, conversion du pointeur avec `getScreenCTM()`, miroir compris) et supprimables (double-clic), puis appelle `onOcelles([{x, y, r}])` ; la page en fait un nouveau modèle `of=…`.
 - **Temps réel** : `papillon.changerAile(modele)` remplace les ailes du papillon affiché. Le corps et la queue repartent de leurs dimensions d'avant l'ajustement aux ailes, puis sont réajustés ; les dégradés existants (identifiés par l'`id` des formes) sont réutilisés, donc les couleurs ne changent pas. Côté page, les curseurs sont limités à un rendu par image (`requestAnimationFrame`).
+
+## Méthode anatomique (`PapillonAnatomique`)
+
+Classe indépendante de `chaoticumPapillonae` (la méthode par modèles d'ailes est conservée), avec la même interface : `cont`, `idSvg`, `width`, `height`, `scaleColors`, `nomPalette`, `graine`, `proportions`, `onReady`, et les propriétés `nom`, `graine`, `nomPalette`, la méthode `proportions(p)`. Elle suit le vocabulaire des schémas *Schéma d'un lépidoptère* et *Ailes de lépidoptères* (Wikimédia Commons) ; chaque élément SVG porte son nom en `id` ou en classe (`aile-anterieure-gauche`, `nervure-7`, `aire-mediane`, `cellule`, `dessin-marginal`, `ocelle`, `cils`, `thorax`, `femur`…).
+
+```mermaid
+flowchart TD
+    G[graine] --> T[Traits : apex, festons, cellule,<br/>queue 45 %, ocelle 70 %, dessins marginaux 75 %,<br/>indices sexuels 40 %, tête, thorax, abdomen, antennes]
+    T --> AA[Aile antérieure<br/>base · côte · apex · marge · tornus · bord interne]
+    T --> AP[Aile postérieure<br/>base · côte · apex · marge · angle anal · bord anal]
+    AA --> N1[Cellule + nervures 12, 11, 10 → côte<br/>7 → apex · 6…2 → marge · 1 → bord interne]
+    AP --> N2[Cellule + nervures 8 → côte · 7…2 → marge<br/>1 → angle anal · 1a → bord anal]
+    N1 --> M[Marge passant par le bout des nervures,<br/>festonnée entre elles ; queue au bout de la nervure 4]
+    N2 --> M
+    M --> D[Couches : fond · aires concentriques découpées à l'aile<br/>· marge · cellule · indices sexuels · dessins marginaux<br/>· ocelle · nervures · contour · cils]
+    D --> S[Côté gauche + copie en miroir<br/>pattes, abdomen, thorax, tête]
+```
+
+- **Ailes** : coordonnées locales (base en 0,0, longueur 1), puis `translate` + `scale` vers la base sur le thorax ; l'échelle est la plus grande qui garde l'aile antérieure et la queue dans le cadre 600 × 600. L'aile postérieure est dessinée sous l'aile antérieure.
+- **Aires** : couronnes centrées sur la base (basale 0–20 %, post-basale 20–34 %, médiane 34–54 %, post-médiane 54–74 % du rayon de l'aile) et cercles autour de l'apex (sub-apicale, apicale), découpés par un `clipPath` à la forme de l'aile ; la marge est un trait épais le long du bord externe, découpé de même.
+- **Symétrie** : le côté droit (ailes, pattes, antennes, palpes, yeux) est une **copie** en miroir des éléments du côté gauche (`cloneNode`, `id` retirés, classes `-gauche` → `-droite`) ; un `<use>` serait ignoré par l'export PNG (canvg). Tête, trompe, thorax et abdomen sont centrés.
+- **Écailles** (option `ecailles`, par défaut) : rangées décalées de petites palettes à bout arrondi, placées en couronnes autour de la base (pas radial ≈ 0,62 × longueur d'écaille, pour qu'elles se recouvrent), pointe vers la marge. Chaque écaille reçoit une valeur de palette : celle de sa zone (cellule, marge, aire apicale ou sub-apicale, aires basale à post-médiane — tirée de la graine et de la zone) plus une variation propre de ± 0,07. Les écailles d'une même rangée et d'une même couleur (48 niveaux) forment un seul `<path>`, dessinés des rangées externes vers la base : le bout de chaque écaille recouvre la base de la suivante. Environ 1 800 écailles pour un papillon, rendu en ~40 ms.
+- **Contour et courbure** : le contour de chaque aile est une seule spline de Catmull-Rom fermée (base, côte, apex, marge, angle externe ou anal, bord interne ou anal), découpée ensuite en côte, marge et bord : il n'y a pas d'angle vif à l'apex ni aux angles. `courbure` (0,5 par défaut) bombe la côte, la marge et le bord interne et émousse l'apex ; les coins restants sont toujours un peu adoucis (rééchantillonnage + coupe des coins de Chaikin), davantage avec la courbure. Les nervures suivent la marge.
+- **Jonction des ailes** : l'apex et la côte de l'aile postérieure passent sous l'aile antérieure, et les festons s'atténuent sur le premier et le dernier quart de la marge (près de l'apex et de l'angle externe ou anal) : aucun trou n'apparaît entre les deux ailes, même avec des festons profonds.
+- **Marge** : bande pleine dont le bord externe est exactement la portion du contour (arrondi) comprise entre l'apex et l'angle externe ou anal ; le bord interne est décalé vers l'intérieur (normale orientée par le sens de parcours du contour, aire signée) de `largeurMarge`, aminci aux extrémités et ondulé entre les nervures (`ondulationMarge`). Couleur `couleurMarge` (`degrade` ou `#rrggbb`), opacité `opaciteMarge` ; la bande est dessinée au-dessus des écailles ou des aires et découpée à la forme de l'aile. Les cils suivent ce même bord réel.
+- **Corps** : `couleurTete`, `couleurThorax`, `couleurAbdomen` valent `degrade` (dégradé de la palette) ou une couleur `#rrggbb` (plein) ; `pattes` (faux par défaut) affiche les trois paires de pattes.
+- **Antennes** (schéma « Les différents types d'antennes ») : une suite d'articles (trapèzes) le long d'une courbe, dont la largeur dépend du type — *en massue* (articles qui s'élargissent, bout arrondi), *épaisse* (largeur maximale aux deux tiers, pointe recourbée), *filiforme* (articles fins, soies aux articulations), *plumeuse* (axe fin, barbes plus longues au milieu, en forme de feuille).
+- **Réglages** : `PapillonAnatomique.REGLAGES` décrit les traits modifiables (ailes, yeux, antennes ; curseur, case à cocher ou liste). `papillon.regler({cle: valeur})` les impose par-dessus les traits tirés de la graine et reconstruit le papillon (`regler(null)` revient à la graine) ; `papillon.traits` donne les valeurs courantes. Dans l'URL : `ana=cle=valeur;…` (`reglagesVersTexte` / `texteVersReglages`). Les traits ajoutés depuis la première version (type d'antenne, articles, yeux, taille des ailes) sont tirés d'un générateur séparé : les graines déjà partagées gardent leur forme.
+- **Couleurs** : dégradés radiaux tirés d'après la graine et l'`id` de l'élément (comme `chaoticumPapillonae`) ; le trait (nervures, contours, pattes) est la teinte la plus sombre de la palette, assombrie.
+- **Proportions** : `corpsL` / `corpsH` agissent sur le thorax et l'abdomen, `queueL` / `queueH` sur la queue de l'aile postérieure ; le papillon est reconstruit (même graine, mêmes couleurs).
+- **Nom** : genre d'après la graine, espèce d'après la palette (fonctions statiques `chaoticumPapillonae.nomGenre`, `nomEspece`, `hash`), sous-espèce *caudata* / *ocellata* / *simplex* (+ *-acuta* si l'apex est pointu).
+
+Dans la page, `methode=anatomique` dans l'URL sélectionne cette méthode.
 
 ## Extraction d'une planche
 

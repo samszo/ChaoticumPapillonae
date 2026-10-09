@@ -12,6 +12,7 @@
     <script src="asset/js/svgenie.js"></script>
     <script src="asset/js/ailesGenerees.js"></script>
     <script src="asset/js/chaoticumPapillonae.js"></script>
+    <script src="asset/js/papillonAnatomique.js"></script>
     <style>
         .divPapi {
             position: absolute;
@@ -76,9 +77,19 @@
             padding: 6px; cursor: pointer; font: inherit;
         }
         #enregistrer img { width: 20px; height: 20px; }
+        #options label.ligne-degrade { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        #choixDegrade { flex: 1; max-width: 60%; }
+        #methodes { display: flex; gap: 4px; }
+        #methodes button { flex: 1; padding: 5px; cursor: pointer; font: inherit; font-size: 13px; background: #fff; border: 1px solid #999; border-radius: 4px; }
+        #methodes button.actif { background: #e8eefc; border-color: #36c; font-weight: bold; }
         #partage { margin: 4px 0; }
         #partage input { width: 100%; box-sizing: border-box; font-size: 12px; }
         #partageStatut, #aideOcelles { font-size: 12px; color: #666; margin-top: 4px; }
+        #reglagesAna { margin-top: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
+        #reglagesAna summary { cursor: pointer; font-weight: bold; }
+        .groupe-ana { font-size: 12px; font-weight: bold; color: #555; margin: 8px 0 0; }
+        #options .reglage-case { display: flex; gap: 6px; align-items: center; font-weight: normal; font-size: 12px; margin: 4px 0 0; }
+        #options .reglage-choix { display: flex; gap: 6px; align-items: center; justify-content: space-between; font-weight: normal; font-size: 12px; margin: 4px 0 0; }
         #corpsQueue { margin-top: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
         #corpsQueue summary { cursor: pointer; font-weight: bold; }
         #reglages { margin-top: 10px; border-top: 1px solid #ccc; padding-top: 6px; }
@@ -117,11 +128,21 @@
             <input type="text" id="lienPartage" readonly aria-label="Lien de partage">
             <div id="partageStatut"></div>
         </div>
+        <label>Méthode de génération</label>
+        <div id="methodes">
+            <button data-methode="modeles" onclick="choisirMethode('modeles')" title="Ailes extraites de planches, dessinées ou générées">Modèles d'ailes</button>
+            <button data-methode="anatomique" onclick="choisirMethode('anatomique')" title="Papillon construit selon les schémas anatomiques (nervures numérotées, aires, cellule…)">Anatomique</button>
+        </div>
         <button class="action" onclick="genererAleatoire()">🎲 Papillon complètement aléatoire</button>
-        <label>Forme des ailes</label>
-        <div class="choix" id="choixAile"></div>
+        <div id="blocAiles">
+            <label>Forme des ailes</label>
+            <div class="choix" id="choixAile"></div>
+        </div>
         <label>Palette de couleurs</label>
         <div class="choix" id="choixPalette"></div>
+        <label class="ligne-degrade">Dégradé
+            <select id="choixDegrade" onchange="changerDegrade(this.value)"></select>
+        </label>
         <button class="action" onclick="generer()">Générer avec ces choix</button>
         <details id="reglages" open hidden>
             <summary>Régler l'aile générée</summary>
@@ -132,6 +153,13 @@
                 <button onclick="nouvelleGraine()" title="Autre aile générée, réglages par défaut">🎲 Autre graine</button>
                 <button onclick="ocellesAutomatiques()" title="Revenir aux ocelles placés automatiquement">◎ Ocelles auto</button>
                 <button onclick="reinitialiserReglages()" title="Revenir aux réglages de la graine">↺ Réinitialiser</button>
+            </div>
+        </details>
+        <details id="reglagesAna" open hidden>
+            <summary>Régler le papillon anatomique</summary>
+            <div id="curseursAna"></div>
+            <div class="reglages-actions">
+                <button onclick="reinitialiserAna()" title="Revenir aux traits tirés de la graine">↺ Revenir à la graine</button>
             </div>
         </details>
         <details id="corpsQueue">
@@ -261,9 +289,122 @@
             "Rainbow");
 
         let papi;
+        //-- méthode de génération : modèles d'ailes (chaoticumPapillonae) ou anatomique ------
+        let methode = "modeles";
+        function choisirMethode(m, sansGenerer) {
+            methode = m == "anatomique" ? "anatomique" : "modeles";
+            d3.selectAll("#methodes button").classed("actif", function () { return this.dataset.methode == methode; });
+            //l'aile anatomique est construite d'après le schéma : pas de choix de modèle
+            d3.select("#blocAiles").attr("hidden", methode == "anatomique" ? true : null);
+            d3.select("#modeleUtilise").attr("hidden", methode == "anatomique" ? true : null);
+            if (methode == "anatomique") d3.select("#reglages").attr("hidden", true);
+            d3.select("#reglagesAna").attr("hidden", methode == "anatomique" ? null : true);
+            afficherProportions();
+            if (!sansGenerer && choixAile) generer();
+        }
+        //-- réglages du papillon anatomique (ailes, yeux, antennes) en temps réel ----------
+        let reglagesInitiaux = null, rafAna = null;
+        function afficherReglagesAna() {
+            if (!papi || !papi.traits) return;
+            let div = d3.select("#curseursAna").html(""), groupe = null;
+            PapillonAnatomique.REGLAGES.forEach(r => {
+                if (r.groupe != groupe) { groupe = r.groupe; div.append("div").attr("class", "groupe-ana").text(groupe); }
+                let v = papi.traits[r.cle];
+                if (r.type == "booleen") {
+                    let l = div.append("label").attr("class", "reglage-case");
+                    l.append("input").attr("type", "checkbox").property("checked", !!v)
+                        .on("change", function () { reglerAna(r.cle, this.checked); });
+                    l.append("span").text(r.nom);
+                } else if (r.type == "couleur") {
+                    //dégradé de la palette ou couleur pleine
+                    let l = div.append("label").attr("class", "reglage-choix"),
+                        plein = /^#[0-9a-fA-F]{6}$/.test(v);
+                    l.append("span").text(r.nom);
+                    let boite = l.append("span").style("display", "flex").style("gap", "4px"),
+                        sel = boite.append("select"),
+                        coul = boite.append("input").attr("type", "color")
+                            .property("value", plein ? v : "#8a5a2b").style("display", plein ? null : "none");
+                    sel.selectAll("option").data([["degrade", "Dégradé"], ["plein", "Plein"]]).join("option")
+                        .attr("value", o => o[0]).text(o => o[1]).property("selected", o => o[0] == (plein ? "plein" : "degrade"));
+                    sel.on("change", function () {
+                        coul.style("display", this.value == "plein" ? null : "none");
+                        reglerAna(r.cle, this.value == "plein" ? coul.property("value") : "degrade");
+                    });
+                    coul.on("input", function () { reglerAna(r.cle, this.value); });
+                } else if (r.type == "choix") {
+                    let l = div.append("label").attr("class", "reglage-choix");
+                    l.append("span").text(r.nom);
+                    let sel = l.append("select").on("change", function () { reglerAna(r.cle, this.value); });
+                    sel.selectAll("option").data(r.options).join("option")
+                        .attr("value", o => o[0]).text(o => o[1]).property("selected", o => o[0] == v);
+                } else {
+                    let l = div.append("label").attr("class", "reglage");
+                    l.append("span").text(r.nom);
+                    let out = l.append("output").text(formaterAna(r, v));
+                    l.append("input").attr("type", "range").attr("min", r.min).attr("max", r.max).attr("step", r.pas)
+                        .property("value", v)
+                        .on("input", function () { out.text(formaterAna(r, +this.value)); reglerAna(r.cle, +this.value); });
+                }
+            });
+        }
+        const formaterAna = (r, v) => r.pas >= 1 ? String(Math.round(v)) : r.pas < 0.01 ? (+v).toFixed(3) : (+v).toFixed(2);
+        let reglagesEnAttente = {};
+        function reglerAna(cle, valeur) {
+            reglagesEnAttente[cle] = valeur;
+            //un seul rendu par image affichée
+            cancelAnimationFrame(rafAna);
+            rafAna = requestAnimationFrame(() => {
+                if (!papi || !papi.regler) return;
+                papi.regler(reglagesEnAttente);
+                reglagesEnAttente = {};
+            });
+        }
+        function reinitialiserAna() {
+            if (!papi || !papi.regler) return;
+            papi.regler(null);
+            afficherReglagesAna();
+        }
+
+        //-- mode de dégradé (radial, linéaire, rayures, anneaux, mixte) -------------------
+        let modeDegrade = "radial";
+        d3.select("#choixDegrade").selectAll("option").data(chaoticumPapillonae.MODES_DEGRADE).join("option")
+            .attr("value", m => m[0]).text(m => m[1]);
+        //recrée le papillon affiché (même graine, même aile, mêmes réglages) avec le nouveau mode
+        function changerDegrade(m) {
+            modeDegrade = m;
+            if (!papi) return;
+            if (methode == "anatomique") reglagesInitiaux = { ...papi.reglages };
+            creerPapillon(methode == "anatomique" ? null : papi.modeleWing, papi.nomPalette, papi.graine);
+        }
+
+        //rappel commun : affiche le nom et met à jour l'URL du papillon affiché
+        const papillonPret = p => {
+            //ignore un papillon remplacé avant la fin de son chargement
+            if (p !== papi) return;
+            d3.select("#nomPapi").text(p.nom);
+            majUrl();
+        };
         function creerPapillon(modeleWing, palette, graine) {
             contSvg.html("");
             d3.select("#nomPapi").text("");
+            if (methode == "anatomique") {
+                papi = new PapillonAnatomique({
+                    'cont': contSvg,
+                    'idSvg': params.idSvg,
+                    'height': 1000,
+                    'width': 1000,
+                    'scaleColors': getScaleColors(palette),
+                    'nomPalette': palette,
+                    'modeDegrade': modeDegrade,
+                    'graine': graine,
+                    'proportions': { ...proportions },
+                    'reglages': reglagesInitiaux || {},
+                    'onReady': papillonPret
+                });
+                reglagesInitiaux = null;
+                afficherReglagesAna();
+                return;
+            }
             afficherModele(modeleWing);
             afficherReglages(modeleWing);
             papi = new chaoticumPapillonae({
@@ -275,15 +416,11 @@
                 'modeleWing': modeleWing,
                 'scaleColors': getScaleColors(palette),
                 'nomPalette': palette,
+                'modeDegrade': modeDegrade,
                 'graine': graine,
                 'proportions': { ...proportions },
                 'onOcelles': modifierOcelles,
-                //ignore un papillon remplacé avant la fin de son chargement
-                'onReady': p => {
-                    if (p !== papi) return;
-                    d3.select("#nomPapi").text(p.nom);
-                    majUrl();
-                }
+                'onReady': papillonPret
             });
         }
 
@@ -296,7 +433,7 @@
             let l = d3.select("#curseursCorps").selectAll(".reglage").data(PROPORTIONS, r => r.cle)
                 .join(enter => {
                     let e = enter.append("label").attr("class", "reglage");
-                    e.append("span").text(r => r.nom);
+                    e.append("span");
                     e.append("output");
                     e.append("input").attr("type", "range").attr("min", 0.3).attr("max", 2.5).attr("step", 0.05)
                         .on("input", function (ev, r) {
@@ -306,6 +443,11 @@
                         });
                     return e;
                 });
+            const libelles = methode == "anatomique"
+                ? { corpsL: "Largeur du thorax et de l'abdomen", corpsH: "Longueur du thorax et de l'abdomen",
+                    queueL: "Largeur de la queue (aile postérieure)", queueH: "Longueur de la queue (aile postérieure)" }
+                : {};
+            l.select("span").text(r => libelles[r.cle] || r.nom);
             l.select("input").property("value", r => proportions[r.cle]);
             l.select("output").text(r => "× " + proportions[r.cle].toFixed(2));
         }
@@ -330,8 +472,14 @@
         //-- partage : l'URL contient tout ce qu'il faut pour regénérer le papillon -------
         function urlPapillon() {
             let q = new URLSearchParams();
-            q.set("aile", papi.modeleWing);
+            if (methode == "anatomique") {
+                q.set("methode", "anatomique");
+                let ana = PapillonAnatomique.reglagesVersTexte(papi.reglages);
+                if (ana) q.set("ana", ana);
+            }
+            else q.set("aile", papi.modeleWing);
             q.set("palette", papi.nomPalette);
+            if (modeDegrade != "radial") q.set("degrade", modeDegrade);
             q.set("graine", papi.graine);
             if (proportions.corpsL != 1 || proportions.corpsH != 1) q.set("corps", proportions.corpsL + "," + proportions.corpsH);
             if (proportions.queueL != 1 || proportions.queueH != 1) q.set("queue", proportions.queueL + "," + proportions.queueH);
@@ -361,9 +509,12 @@
         //paramètres de génération lus dans l'URL : aile, palette, graine, corps, queue
         function lireUrl() {
             let q = new URLSearchParams(location.search), r = {};
+            r.methode = q.get("methode") == "anatomique" ? "anatomique" : "modeles";
+            if (q.get("ana")) reglagesInitiaux = PapillonAnatomique.texteVersReglages(q.get("ana"));
             let aile = q.get("aile");
             if (aile && (AilesGenerees.estGeneree(aile) || modelesWing.includes(aile))) r.aile = aile;
             if (nomsPalettes.includes(q.get("palette"))) r.palette = q.get("palette");
+            if (chaoticumPapillonae.MODES_DEGRADE.some(m => m[0] == q.get("degrade"))) modeDegrade = q.get("degrade");
             if (/^\d+$/.test(q.get("graine") || "")) r.graine = +q.get("graine");
             [["corps", "corpsL", "corpsH"], ["queue", "queueL", "queueH"]].forEach(([k, l, h]) => {
                 let v = (q.get(k) || "").split(",").map(Number);
@@ -550,10 +701,13 @@
         }
         function generer(graine) {
             let aile = choixAile.valeur(), palette = choixPalette.valeur();
-            if (aile == "aleatoire")
-                aile = Math.random() < PART_GENEREES ? NOUVELLE_AILE : d3.shuffle(modelesWing.slice())[0];
-            //une nouvelle aile générée reçoit sa propre graine (elle s'affiche et nomme le papillon)
-            if (aile == NOUVELLE_AILE) aile = AilesGenerees.nouvelle();
+            if (methode == "anatomique") aile = null;
+            else {
+                if (aile == "aleatoire")
+                    aile = Math.random() < PART_GENEREES ? NOUVELLE_AILE : d3.shuffle(modelesWing.slice())[0];
+                //une nouvelle aile générée reçoit sa propre graine (elle s'affiche et nomme le papillon)
+                if (aile == NOUVELLE_AILE) aile = AilesGenerees.nouvelle();
+            }
             creerPapillon(aile, palette == "aleatoire" ? d3.shuffle(nomsPalettes.slice())[0] : palette, graine);
         }
         function genererAleatoire() {
@@ -566,9 +720,10 @@
             modelesWing = liste;
             choixAile = creerChoixAile();
             let u = lireUrl();
-            afficherProportions();
+            choisirMethode(u.methode, true);
             if (u.aile) choixAile.set(u.aile);
             if (u.palette) choixPalette.set(u.palette);
+            d3.select("#choixDegrade").property("value", modeDegrade);
             generer(u.graine);
         });
         function savePapi() {

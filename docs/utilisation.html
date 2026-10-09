@@ -45,6 +45,7 @@ Chaoticum Papillonae génère des papillons imaginaires en SVG. Le papillon occu
 | 🎲 Papillon complètement aléatoire | Tire une aile et une palette au hasard |
 | Forme des ailes | Choix de l'aile, avec aperçu de la forme et du papillon d'origine |
 | Palette de couleurs | Choix de la palette (D3 scale-chromatic) ou couleurs RVB au hasard |
+| Dégradé | Forme des dégradés : radial, linéaire, rayures, anneaux ou mixte |
 | Générer avec ces choix | Crée un nouveau papillon avec les réglages choisis |
 | Importer une planche | Ajoute de nouvelles ailes à partir d'une image (réservé aux personnes connectées) |
 
@@ -89,6 +90,37 @@ Cliquer sur **🎲 Papillon complètement aléatoire**. L'aile et la palette son
 
 Laisser une liste sur **🎲 Aléatoire** ne tire au hasard que ce critère. Générer plusieurs fois avec les mêmes choix donne des papillons différents : la morphologie change à chaque fois.
 
+## Méthode anatomique
+
+Le sélecteur **Méthode de génération** propose deux façons de construire le papillon :
+
+- **Modèles d'ailes** : la méthode d'origine (ailes extraites des planches, dessinées ou générées) ;
+- **Anatomique** : le papillon entier est construit d'après les schémas *Schéma d'un lépidoptère* et *Ailes de lépidoptères* de Wikimédia Commons. La liste des formes d'aile et l'outil de réglage des ailes sont alors masqués ; tout dépend de la graine et de la palette.
+
+| Partie | Éléments dessinés (vocabulaire des schémas) |
+|---|---|
+| Tête | œil, palpe, trompe (spirale), antennes articulées : en massue, épaisse (pointe recourbée), filiforme (soies) ou plumeuse (barbes) |
+| Corps | thorax, abdomen en anneaux, pattes antérieure, médiane et postérieure (fémur, tibia, tarse) |
+| Aile antérieure | base, côte, apex, marge, angle externe (tornus), bord interne ; cellule ; nervures 1 à 12 (12, 11, 10 vers la côte, 7 vers l'apex, 6 à 2 vers la marge, 1 vers le bord interne) ; aires basale, post-basale, médiane, post-médiane, sub-apicale, apicale ; indices sexuels (parfois) |
+| Aile postérieure | côte, apex, marge, angle anal, bord anal ; cellule ; nervures 1a à 8 ; queue au bout de la nervure 4 (parfois) ; ocelle entre les nervures 1 et 2 (souvent) |
+| Les deux ailes | dessins marginaux (lunules entre les nervures), cils le long de la marge ; **écailles** : petites palettes arrondies qui se recouvrent en rangées comme des tuiles, chacune d'une couleur propre ; leurs couleurs dessinent les aires, la cellule et la marge |
+
+### Régler le papillon anatomique en temps réel
+
+La section **Régler le papillon anatomique** modifie immédiatement le papillon affiché (les couleurs ne changent pas) :
+
+| Groupe | Réglages |
+|---|---|
+| Ailes | taille, **courbure** (forme plus arrondie), **écailles** (case à cocher) et taille des écailles, apex pointu, longueur de la cellule, festons (aile antérieure / postérieure), queue, épaisseur des nervures ; ocelle, dessins marginaux, indices sexuels (cases à cocher) |
+| Marge | **marge** (case à cocher), **largeur**, **ondulation du bord intérieur** (entre les nervures), **couleur** (*Dégradé* ou *Plein*), **opacité** ; la marge est une bande collée au bord externe de l'aile, sans espace |
+| Corps | couleur de la **tête**, du **corps (thorax)** et de la **queue (abdomen)** : *Dégradé* de la palette ou *Plein* avec une couleur au choix ; **pattes** (masquées par défaut ; case à cocher pour les afficher) |
+| Yeux | taille, écart |
+| Antennes | type (en massue, épaisse, filiforme, plumeuse), longueur, écartement, nombre d'articles |
+
+**↺ Revenir à la graine** annule les réglages. Les réglages sont enregistrés dans l'URL (paramètre `ana`) et donc conservés par **Partager** ; un nouveau papillon repart des traits de sa graine.
+
+En méthode anatomique, la section **Corps et queue** règle la largeur et la longueur du **thorax et de l'abdomen**, et celles de la **queue de l'aile postérieure** (comme dans le schéma).
+
 ## Les ailes générées
 
 Une aile générée est construite comme une vraie aile de papillon : une **cellule discale** près de la base, des **nervures** qui en partent en éventail jusqu'au bord, et des **membranes** entre les nervures. Sa forme (nombre de nervures, taille de la cellule discale, pointe de l'apex, bord festonné, queue, ocelles) dépend d'un **numéro de graine** affiché sous l'aperçu : le même numéro redonne toujours la même aile.
@@ -132,13 +164,30 @@ Le bouton **🔗 Partager** copie un lien qui regénère exactement le papillon 
 
 | Paramètre | Exemple | Rôle |
 |---|---|---|
-| `aile` | `genere:42?ep=4&oc=3`, `papillons_svg/papillon_05.svg` | Modèle d'aile (aile générée et ses réglages, ou fichier d'aile proposé dans la liste) |
+| `methode` | `anatomique` | Méthode anatomique (absent : modèles d'ailes) |
+| `ana` | `antenneType=plumeuse;yeux=1.4;ocelle=0` | Réglages du papillon anatomique |
+| `aile` | `genere:42?ep=4&oc=3`, `papillons_svg/papillon_05.svg` | Modèle d'aile (aile générée et ses réglages, ou fichier d'aile proposé dans la liste) ; ignoré en méthode anatomique |
 | `palette` | `Viridis` | Palette de couleurs (nom de la liste, `RVB` pour des couleurs au hasard) |
+| `degrade` | `rayures` | Mode de dégradé : `lineaire`, `rayures`, `anneaux`, `mixte` (absent : radial) |
 | `graine` | `777` | Graine de la tête, du corps, de la queue, des antennes et des couleurs |
 | `corps` | `1.2,0.9` | Facteurs largeur, longueur du corps |
 | `queue` | `1,1.5` | Facteurs largeur, longueur de la queue |
 
 Les paramètres absents ou invalides sont tirés au hasard (ou laissés à 1 pour les proportions).
+
+## Modes de dégradé
+
+Le menu **Dégradé**, sous la palette, change la façon dont les couleurs se répartissent dans chaque forme (aile, membrane, tête, corps…), pour les deux méthodes :
+
+| Mode | Effet |
+|---|---|
+| Radial | du centre de la forme vers son bord (mode d'origine) |
+| Linéaire | en ligne droite, dans une direction propre à chaque forme |
+| Rayures | bandes parallèles répétées |
+| Anneaux | cercles concentriques répétés |
+| Mixte | chaque forme reçoit l'un des modes précédents |
+
+Changer de mode recolore le papillon affiché sans changer sa forme. En méthode anatomique avec écailles, le mode répartit aussi les couleurs des écailles : en bandes droites, en rayures ou en anneaux autour de la base, mêlés aux zones de l'aile. Le mode est enregistré dans l'URL (paramètre `degrade`).
 
 ## Le nom du papillon
 

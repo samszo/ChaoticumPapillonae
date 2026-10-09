@@ -14,6 +14,8 @@ class chaoticumPapillonae {
         this.prop = Object.assign({'corpsL':1, 'corpsH':1, 'queueL':1, 'queueH':1}, params.proportions || {});
         //appelée quand un ocelle d'une aile générée est déplacé ou supprimé : reçoit [{x, y, r}]
         this.onOcelles = params.onOcelles ? params.onOcelles : false;
+        //forme des dégradés : radial, lineaire, rayures, anneaux ou mixte (cf. MODES_DEGRADE)
+        this.modeDegrade = chaoticumPapillonae.MODES_DEGRADE.some(m => m[0] == params.modeDegrade) ? params.modeDegrade : "radial";
         this.modelesWing = params.modelesWing ? params.modelesWing : chaoticumPapillonae.modelesWing;
         //modèle d'aile imposé, sinon tirage aléatoire dans modelesWing
         this.modeleWing = params.modeleWing ? params.modeleWing
@@ -540,41 +542,10 @@ class chaoticumPapillonae {
                 code = (hash(aile + '|' + me.nomPalette + '|' + dims) % 0xFFFF).toString(16).toUpperCase().padStart(4,'0');
             return genre + ' ' + espece + ' ' + ssp + ' ' + code;
         }
-        function hash(str){
-            //FNV-1a 32 bits : même chaîne => même nombre
-            let h = 0x811c9dc5;
-            for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0;
-            return h;
-        }
-        function nomGenre(aile){
-            const syllabes = ["pa","pi","lo","ne","mo","ri","ta","ve","chao","ti","cu","se","ra","do",
-                    "li","na","phi","the","xa","lu","me","so","zy","ca"],
-                suffixes = ["ia","us","ella","opsis","ides","ina","optera","ura"];
-            let h = hash(aile), nom = "";
-            for (let i = 0; i < 3; i++) { nom += syllabes[h % syllabes.length]; h = Math.floor(h / syllabes.length); }
-            nom += suffixes[h % suffixes.length];
-            return nom.charAt(0).toUpperCase() + nom.slice(1);
-        }
-        function nomEspece(palette){
-            const noms = {
-                "RVB":"versicolor", "Rainbow":"iridescens", "Sinebow":"sinuosa", "Spectral":"spectralis",
-                "Blues":"caerulea", "Greens":"viridula", "Greys":"grisea", "Oranges":"aurantiaca",
-                "Purples":"purpurea", "Reds":"rubra", "Viridis":"viridis", "Inferno":"infernalis",
-                "Magma":"magmatica", "Plasma":"plasmatica", "Cividis":"civica", "Turbo":"turbida",
-                "Warm":"calida", "Cool":"frigida", "CubehelixDefault":"helicoidea",
-                "Category10":"decemcolor", "Accent":"accentuata", "Dark2":"obscura", "Observable10":"observabilis",
-                "Paired":"gemina", "Pastel1":"pallida", "Pastel2":"pallidula", "Set1":"varia",
-                "Set2":"variabilis", "Set3":"varietas", "Tableau10":"tabularis"
-            },
-                //racines latines des codes de couleur ColorBrewer (YlOrRd, BuPu, PiYG...)
-                racines = {"Yl":"flavo","Or":"aurantio","Rd":"rubro","Bu":"caeruleo","Pu":"purpureo",
-                    "Gn":"viridi","Br":"brunneo","BG":"glauco","PR":"purpureo","Pi":"roseo","YG":"chloro","Gy":"griseo"};
-            if (noms[palette]) return noms[palette];
-            let parts = palette.match(/BG|PR|YG|[A-Z][a-z]/g);
-            if (!parts || !parts.every(p => racines[p])) return "incognita";
-            //la dernière racine prend la terminaison -a, les autres sont reliées par un tiret
-            return parts.map(p => racines[p]).join('-').replace(/o$/, 'a').replace(/i$/, 'is');
-        }
+        //nom latin : fonctions partagées avec papillonAnatomique.js (cf. méthodes statiques)
+        const hash = chaoticumPapillonae.hash,
+            nomGenre = chaoticumPapillonae.nomGenre,
+            nomEspece = chaoticumPapillonae.nomEspece;
         function nomSousEspece(){
             //forme du corps (allongement) + envergure des ailes dans le cadre
             let allonge = posis.body.ry / posis.body.rx,
@@ -592,22 +563,21 @@ class chaoticumPapillonae {
         {
             //création du degradé
             let defGrad = params.def ? params.def : defs,
-                degrad = defGrad.append(params.type)
-                    .attr('id', params.id)
-                    .attr('gradientUnits', "userSpaceOnUse");
+                //les dégradés radiaux suivent le mode choisi (radial, linéaire, rayures, anneaux, mixte)
+                degrad = params.type == 'radialGradient'
+                    ? chaoticumPapillonae.ajouterDegrade(defGrad, params.id, me.modeDegrade, params.cx, params.cy, params.r, me.graine)
+                    : defGrad.append(params.type).attr('id', params.id).attr('gradientUnits', "userSpaceOnUse");
             //couleurs tirées d'après la graine et l'id du dégradé : une forme garde ses couleurs
             //quelles que soient les modifications faites aux autres
             let r = d3.randomLcg(hash(me.graine + '|' + params.id) / 4294967296);
             //ajoute l'orientation verticale ou horizontale
             if(params.type== 'linearGradient' && r() >= 0.5)
                 degrad.attr('x1', "0").attr('y1', "0").attr('x2', "0").attr('y2', "1");
-            //ajoute la taille et la position du radial
-            if(params.type== 'radialGradient')
-                degrad.attr('cx', params.cx).attr('cy', params.cy).attr('r', params.r);
             
             //ajoute les stops
             degrad.selectAll('stop').data(getRndStop(r)).enter()
                 .append('stop').attr('offset', s=>s.o).attr('stop-color', s=>s.c);
+            chaoticumPapillonae.finaliserDegrade(degrad);
         }
         
         function getRndStop(r)
@@ -633,6 +603,86 @@ class chaoticumPapillonae {
         }
         
         me.init();
+    }
+
+    //-- modes de dégradé (partagés avec papillonAnatomique.js) --------------------------
+    static MODES_DEGRADE = [["radial", "Radial"], ["lineaire", "Linéaire"], ["rayures", "Rayures"],
+        ["anneaux", "Anneaux"], ["mixte", "Mixte"]];
+    //mode effectif d'un élément : en « mixte », chaque élément tire le sien (d'après la graine et son id)
+    static modeElement(mode, graine, id) {
+        if (mode != "mixte") return mode;
+        const m = ["radial", "lineaire", "rayures", "anneaux"];
+        return m[chaoticumPapillonae.hash(graine + "|mode|" + id) % m.length];
+    }
+    //crée le dégradé (sans ses couleurs) centré en cx, cy, de rayon r :
+    //radial = du centre vers le bord ; lineaire = en ligne droite selon un angle propre à l'élément ;
+    //rayures = dégradé linéaire court répété ; anneaux = dégradé radial court répété en miroir
+    static ajouterDegrade(defs, id, mode, cx, cy, r, graine) {
+        const m = chaoticumPapillonae.modeElement(mode, graine, id),
+            angle = (chaoticumPapillonae.hash(graine + "|angle|" + id) % 360) * Math.PI / 180,
+            demi = (k) => [cx - Math.cos(angle) * r * k, cy - Math.sin(angle) * r * k, cx + Math.cos(angle) * r * k, cy + Math.sin(angle) * r * k];
+        //les répétitions (rayures, anneaux) sont écrites en arrêts de couleur répétés plutôt qu'avec
+        //spreadMethod, que l'export PNG (canvg) ignore : cf. finaliserDegrade, appelée après les arrêts
+        let g;
+        if (m == "lineaire" || m == "rayures") {
+            const [x1, y1, x2, y2] = demi(1);
+            g = defs.append("linearGradient").attr("x1", x1).attr("y1", y1).attr("x2", x2).attr("y2", y2);
+            if (m == "rayures") g.attr("data-periodes", 6);
+        } else {
+            g = defs.append("radialGradient").attr("cx", cx).attr("cy", cy).attr("r", r);
+            if (m == "anneaux") g.attr("data-periodes", 3).attr("data-miroir", 1);
+        }
+        return g.attr("id", id).attr("gradientUnits", "userSpaceOnUse");
+    }
+    //répète les arrêts de couleur d'un dégradé « rayures » (répétition) ou « anneaux » (en miroir)
+    static finaliserDegrade(g) {
+        const n = +g.attr("data-periodes");
+        if (!n) return g;
+        const miroir = g.attr("data-miroir") == 1,
+            stops = g.selectAll("stop").nodes().map(e => [+e.getAttribute("offset"), e.getAttribute("stop-color")]);
+        g.selectAll("stop").remove();
+        for (let k = 0; k < n; k++) {
+            const sens = miroir && k % 2 ? [...stops].reverse().map(([o, c]) => [1 - o, c]) : stops;
+            sens.forEach(([o, c]) => g.append("stop").attr("offset", ((k + o) / n).toFixed(4)).attr("stop-color", c));
+        }
+        return g.attr("data-periodes", null).attr("data-miroir", null);
+    }
+
+    //-- nom latin (genre d'après un texte, espèce d'après la palette) ---------------
+    static hash(str){
+        //FNV-1a 32 bits : même chaîne => même nombre
+        let h = 0x811c9dc5;
+        for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 0x01000193) >>> 0;
+        return h;
+    }
+    static nomGenre(aile){
+        const syllabes = ["pa","pi","lo","ne","mo","ri","ta","ve","chao","ti","cu","se","ra","do",
+                "li","na","phi","the","xa","lu","me","so","zy","ca"],
+            suffixes = ["ia","us","ella","opsis","ides","ina","optera","ura"];
+        let h = chaoticumPapillonae.hash(aile), nom = "";
+        for (let i = 0; i < 3; i++) { nom += syllabes[h % syllabes.length]; h = Math.floor(h / syllabes.length); }
+        nom += suffixes[h % suffixes.length];
+        return nom.charAt(0).toUpperCase() + nom.slice(1);
+    }
+    static nomEspece(palette){
+        const noms = {
+            "RVB":"versicolor", "Rainbow":"iridescens", "Sinebow":"sinuosa", "Spectral":"spectralis",
+            "Blues":"caerulea", "Greens":"viridula", "Greys":"grisea", "Oranges":"aurantiaca",
+            "Purples":"purpurea", "Reds":"rubra", "Viridis":"viridis", "Inferno":"infernalis",
+            "Magma":"magmatica", "Plasma":"plasmatica", "Cividis":"civica", "Turbo":"turbida",
+            "Warm":"calida", "Cool":"frigida", "CubehelixDefault":"helicoidea",
+            "Category10":"decemcolor", "Accent":"accentuata", "Dark2":"obscura", "Observable10":"observabilis",
+            "Paired":"gemina", "Pastel1":"pallida", "Pastel2":"pallidula", "Set1":"varia",
+            "Set2":"variabilis", "Set3":"varietas", "Tableau10":"tabularis"
+        },
+            //racines latines des codes de couleur ColorBrewer (YlOrRd, BuPu, PiYG...)
+            racines = {"Yl":"flavo","Or":"aurantio","Rd":"rubro","Bu":"caeruleo","Pu":"purpureo",
+                "Gn":"viridi","Br":"brunneo","BG":"glauco","PR":"purpureo","Pi":"roseo","YG":"chloro","Gy":"griseo"};
+        if (noms[palette]) return noms[palette];
+        let parts = palette.match(/BG|PR|YG|[A-Z][a-z]/g);
+        if (!parts || !parts.every(p => racines[p])) return "incognita";
+        //la dernière racine prend la terminaison -a, les autres sont reliées par un tiret
+        return parts.map(p => racines[p]).join('-').replace(/o$/, 'a').replace(/i$/, 'is');
     }
 
     //modèles d'aile disponibles : exemples dessinés, complétés par chargerModeles()
